@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Inter', sans-serif;
+
+  /* Vintage / Cinematic Palette */
+  --color-vintage-sepia-50: #fdfaf5;
+  --color-vintage-sepia-100: #f5eedf;
+  --color-vintage-sepia-200: #e8dbbf;
+  --color-vintage-sepia-900: #2d1f10;
+  
+  --color-warm-gray-50: #f7f6f2;
+  --color-warm-gray-100: #ebeae4;
+  --color-warm-gray-200: #dedcd3;
+  --color-warm-gray-300: #cdcbbd;
+  --color-warm-gray-700: #545147;
+  --color-warm-gray-800: #38362e;
+  --color-warm-gray-900: #21201b;
+
+  --color-matte-black: #121212;
+  --color-matte-gray: #1e1e1e;
+  --color-matte-dark: #0a0a0a;
+
+  --color-muted-green-50: #f3f6f3;
+  --color-muted-green-200: #c1d1c1;
+  --color-muted-green-600: #496349;
+  --color-muted-green-800: #2e3e2e;
+
+  --color-vintage-gold: #b3924e;
+  --color-vintage-gold-light: #d1b87b;
+  --color-film-red: #a83b3b;
+  --color-film-red-light: #c75656;
+}
+
+body {
+  background-color: var(--color-vintage-sepia-50);
+  color: var(--color-warm-gray-900);
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Elegant custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-vintage-sepia-100);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-warm-gray-300);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-vintage-gold);
+}
+
+/* Glassmorphism utility classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.glass-panel-dark {
+  background: rgba(18, 18, 18, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Vintage camera shutter click animation */
+@keyframes shutter-click {
+  0% { opacity: 1; }
+  50% { opacity: 0.1; }
+  100% { opacity: 1; }
+}
+
+.animate-shutter {
+  animation: shutter-click 0.3s ease-out;
+}
+
+/* Elegant slide-in from right animation for toasts */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

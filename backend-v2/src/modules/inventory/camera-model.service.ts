@@ -1,0 +1,208 @@
+import { supabaseAdmin } from '../../config/supabase.js';
+
+export interface CameraModelPayload {
+  categoryId?: number | string | null;
+  modelName: string;
+  rentPricePerDay: number;
+  depositAmount: number;
+  salePrice?: number;
+  isActive?: boolean;
+}
+
+export interface CameraModelFilters {
+  categoryId?: number | string;
+  isActive?: boolean;
+}
+
+export class CameraModelService {
+  static async listCameraModels(filters: CameraModelFilters) {
+    let query = supabaseAdmin
+      .from('camera_models')
+      .select(`
+        *,
+        categories (
+          id,
+          name
+        )
+      `)
+      .order('id', { ascending: false });
+
+    if (filters.categoryId) {
+      query = query.eq('catgories_id', filters.categoryId);
+    }
+    if (filters.isActive !== undefined) {
+      query = query.eq('is_active', filters.isActive);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+
+  static async getCameraModelById(id: string | number) {
+    const { data, error } = await supabaseAdmin
+      .from('camera_models')
+      .select(`
+        *,
+        categories (
+          id,
+          name
+        ),
+        equipments (
+          id,
+          status,
+          serial_number
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async createCameraModel(payload: CameraModelPayload, staffId: string) {
+    const { data, error } = await supabaseAdmin
+      .from('camera_models')
+      .insert({
+        catgories_id: payload.categoryId || null,
+        model_name: payload.modelName,
+        rent_price_per_day: payload.rentPricePerDay,
+        deposit_amount: payload.depositAmount,
+        sale_price: payload.salePrice || 0,
+        is_active: payload.isActive !== undefined ? payload.isActive : true
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async updateCameraModel(id: string | number, updates: Partial<CameraModelPayload>, staffId: string) {
+    const { data: oldModel, error: findErr } = await supabaseAdmin
+      .from('camera_models')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (findErr) {
+      if (findErr.code === 'PGRST116') {
+        throw new Error('Camera model not found.');
+      }
+      throw findErr;
+    }
+
+    const mappedUpdates: Record<string, any> = {};
+    if (updates.categoryId !== undefined) mappedUpdates.catgories_id = updates.categoryId;
+    if (updates.modelName !== undefined) mappedUpdates.model_name = updates.modelName;
+    if (updates.rentPricePerDay !== undefined) mappedUpdates.rent_price_per_day = updates.rentPricePerDay;
+    if (updates.depositAmount !== undefined) mappedUpdates.deposit_amount = updates.depositAmount;
+    if (updates.salePrice !== undefined) mappedUpdates.sale_price = updates.salePrice;
+    if (updates.isActive !== undefined) mappedUpdates.is_active = updates.isActive;
+
+    const { data, error } = await supabaseAdmin
+      .from('camera_models')
+      .update(mappedUpdates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async deleteCameraModel(id: string | number, staffId: string) {
+    const { data: model, error: findErr } = await supabaseAdmin
+      .from('camera_models')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (findErr) {
+      if (findErr.code === 'PGRST116') {
+        throw new Error('Camera model not found.');
+      }
+      throw findErr;
+    }
+
+    // Check if there are equipments referencing this model
+    const { count, error: countErr } = await supabaseAdmin
+      .from('equipments')
+      .select('id', { count: 'exact', head: true })
+      .eq('product_id', id);
+
+    if (countErr) throw countErr;
+    if (count && count > 0) {
+      throw new Error('Cannot delete camera model because it still has active physical equipment items.');
+    }
+
+    const { error: delErr } = await supabaseAdmin
+      .from('camera_models')
+      .delete()
+      .eq('id', id);
+
+    if (delErr) throw delErr;
+    return true;
+  }
+
+  static async checkAvailability(modelId: string | number, startDate: string, endDate: string) {
+    // 1. Get total equipments for this model
+    const { data: equipments, error: eqErr } = await supabaseAdmin
+      .from('equipments')
+      .select('id')
+      .eq('product_id', modelId);
+
+    if (eqErr) throw eqErr;
+    const totalEquipments = equipments ? equipments.length : 0;
+
+    if (totalEquipments === 0) {
+      return { totalEquipments: 0, availableCount: 0, bookedCount: 0 };
+    }
+
+    // 2. Find equipments that are booked during the requested period
+    // A booking overlaps if: booking.start_date < endDate AND booking.end_date > startDate
+    const equipmentIds = equipments!.map(e => e.id);
+
+    const { data: bookedLinks, error: blErr } = await supabaseAdmin
+      .from('booking_equipments')
+      .select(`
+        equipment_id,
+        bookings!inner (
+          booking_status,
+          start_date,
+          end_date
+        )
+      `)
+      .in('equipment_id', equipmentIds);
+
+    if (blErr) throw blErr;
+
+    const bookedEquipmentIds = new Set<string>();
+    (bookedLinks || []).forEach((link: any) => {
+      const booking = link.bookings;
+      if (!booking) return;
+      const status = booking.booking_status;
+      if (status === 'CANCELED' || status === 'CANCELLED' || status === 'CHECKED_OUT') return;
+
+      const bStart = new Date(booking.start_date);
+      const bEnd = new Date(booking.end_date);
+      const qStart = new Date(startDate);
+      const qEnd = new Date(endDate);
+
+      // Check overlap
+      if (bStart < qEnd && bEnd > qStart) {
+        bookedEquipmentIds.add(link.equipment_id);
+      }
+    });
+
+    const bookedCount = bookedEquipmentIds.size;
+    const availableCount = totalEquipments - bookedCount;
+
+    return {
+      totalEquipments,
+      availableCount: Math.max(0, availableCount),
+      bookedCount
+    };
+  }
+}

@@ -1,0 +1,7 @@
+cd c:\DATA\PTTKHT\backend
+npm run dev
+
+cd c:\DATA\PTTKHT\frontend
+npm run dev
+
+http://localhost:3000
