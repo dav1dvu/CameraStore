@@ -171,11 +171,11 @@ export const SaleStaffManagement: React.FC = () => {
 
       {/* Add Employee Form */}
       {showAddForm && (
-        <form onSubmit={handleAddSubmit} className="bg-vintage-sepia-100 p-6 rounded-xl border border-vintage-sepia-200 shadow-sm max-w-xl mx-auto text-xs space-y-4 font-bold text-warm-gray-700">
+        <form onSubmit={handleAddSubmit} className="bg-vintage-sepia-100 p-6 rounded-xl border border-vintage-sepia-200 shadow-sm text-xs space-y-4 font-bold text-warm-gray-700">
           <h3 className="font-serif font-bold text-base text-vintage-sepia-900 border-b border-vintage-sepia-200 pb-2 flex items-center gap-2">
-            <Plus size={18} className="text-vintage-gold" /> Khai báo nhân viên mới
+            <Plus size={18} className="text-vintage-gold" /> Khai báo nhân sự mới
           </h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block mb-1">Mã nhân sự (Staff Code) *</label>
               <input
@@ -184,7 +184,7 @@ export const SaleStaffManagement: React.FC = () => {
                 placeholder="Ví dụ: NVB01..."
                 value={newEmployee.staffCode}
                 onChange={e => setNewEmployee({ ...newEmployee, staffCode: e.target.value })}
-                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 focus:outline-none"
+                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 focus:outline-none focus:border-vintage-gold font-mono font-bold"
               />
             </div>
             <div>
@@ -195,12 +195,12 @@ export const SaleStaffManagement: React.FC = () => {
                 placeholder="Ví dụ: Lê Văn B..."
                 value={newEmployee.fullName}
                 onChange={e => setNewEmployee({ ...newEmployee, fullName: e.target.value })}
-                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 focus:outline-none"
+                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 focus:outline-none focus:border-vintage-gold"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block mb-1">Số điện thoại</label>
               <input
@@ -208,7 +208,7 @@ export const SaleStaffManagement: React.FC = () => {
                 placeholder="Ví dụ: 0905678901..."
                 value={newEmployee.phone}
                 onChange={e => setNewEmployee({ ...newEmployee, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 focus:outline-none"
+                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 focus:outline-none focus:border-vintage-gold font-mono"
               />
             </div>
             <div>
@@ -218,7 +218,7 @@ export const SaleStaffManagement: React.FC = () => {
                 placeholder="Địa chỉ..."
                 value={newEmployee.address}
                 onChange={e => setNewEmployee({ ...newEmployee, address: e.target.value })}
-                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 focus:outline-none"
+                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 focus:outline-none focus:border-vintage-gold"
               />
             </div>
           </div>
@@ -230,7 +230,7 @@ export const SaleStaffManagement: React.FC = () => {
               placeholder="Ca làm việc, chuyên môn..."
               value={newEmployee.notes}
               onChange={e => setNewEmployee({ ...newEmployee, notes: e.target.value })}
-              className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 focus:outline-none"
+              className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 focus:outline-none focus:border-vintage-gold"
             />
           </div>
 
@@ -238,9 +238,10 @@ export const SaleStaffManagement: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2.5 rounded bg-vintage-sepia-900 text-vintage-sepia-50 font-bold hover:bg-vintage-gold cursor-pointer"
+              className="flex items-center gap-2 px-6 py-2.5 rounded bg-vintage-sepia-900 text-vintage-sepia-50 font-bold hover:bg-vintage-gold hover:text-vintage-sepia-950 transition-colors cursor-pointer disabled:opacity-50 text-xs uppercase tracking-wider"
             >
-              Lưu nhân viên
+              {loading ? <Loader2 className="animate-spin h-3.5 w-3.5" /> : <Save size={14} />}
+              Lưu nhân sự
             </button>
           </div>
         </form>
@@ -256,7 +257,7 @@ export const SaleStaffManagement: React.FC = () => {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider">
-                <th className="p-4 w-32">Mã nhân viên</th>
+                <th className="p-4 w-32">Mã nhân sự</th>
                 <th className="p-4">Họ và tên</th>
                 <th className="p-4 w-36">Số điện thoại</th>
                 <th className="p-4 w-48">Địa chỉ</th>
@@ -269,14 +270,14 @@ export const SaleStaffManagement: React.FC = () => {
                 const isEditing = editingRowId === emp.id;
                 return (
                   <tr key={emp.id} className="hover:bg-vintage-sepia-50/50">
-                    {/* Mã nhân viên */}
+                    {/* Mã nhân sự */}
                     <td className="p-4 font-mono font-bold text-vintage-sepia-900">
                       {isEditing ? (
                         <input
                           type="text"
                           value={editFormData.staffCode}
                           onChange={e => setEditFormData({ ...editFormData, staffCode: e.target.value })}
-                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs font-mono font-bold"
+                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs font-mono font-bold focus:outline-none"
                         />
                       ) : (
                         emp.staff_code
@@ -290,7 +291,7 @@ export const SaleStaffManagement: React.FC = () => {
                           type="text"
                           value={editFormData.fullName}
                           onChange={e => setEditFormData({ ...editFormData, fullName: e.target.value })}
-                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs font-bold"
+                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs font-bold focus:outline-none"
                         />
                       ) : (
                         emp.full_name
@@ -298,13 +299,13 @@ export const SaleStaffManagement: React.FC = () => {
                     </td>
 
                     {/* Số điện thoại */}
-                    <td className="p-4 font-mono text-warm-gray-750">
+                    <td className="p-4 font-mono text-warm-gray-700">
                       {isEditing ? (
                         <input
                           type="text"
                           value={editFormData.phone}
                           onChange={e => setEditFormData({ ...editFormData, phone: e.target.value })}
-                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs font-mono"
+                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs font-mono focus:outline-none"
                         />
                       ) : (
                         emp.phone || '-'
@@ -312,13 +313,13 @@ export const SaleStaffManagement: React.FC = () => {
                     </td>
 
                     {/* Địa chỉ */}
-                    <td className="p-4 text-warm-gray-700 truncate max-w-xs" title={emp.address}>
+                    <td className="p-4 text-warm-gray-750 truncate max-w-xs" title={emp.address}>
                       {isEditing ? (
                         <input
                           type="text"
                           value={editFormData.address}
                           onChange={e => setEditFormData({ ...editFormData, address: e.target.value })}
-                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs"
+                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs focus:outline-none"
                         />
                       ) : (
                         emp.address || '-'
@@ -332,7 +333,7 @@ export const SaleStaffManagement: React.FC = () => {
                           type="text"
                           value={editFormData.notes}
                           onChange={e => setEditFormData({ ...editFormData, notes: e.target.value })}
-                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs"
+                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs focus:outline-none"
                         />
                       ) : (
                         emp.notes || '-'
@@ -364,12 +365,14 @@ export const SaleStaffManagement: React.FC = () => {
                           <>
                             <button
                               onClick={() => startEdit(emp)}
+                              title="Chỉnh sửa dòng này"
                               className="p-2 rounded bg-vintage-gold/10 hover:bg-vintage-gold text-vintage-gold hover:text-vintage-sepia-900 cursor-pointer"
                             >
                               <Edit2 size={12} />
                             </button>
                             <button
                               onClick={() => setConfirmDeleteId(emp.id)}
+                              title="Xóa nhân viên"
                               className="p-2 rounded bg-red-100 hover:bg-red-200 text-red-600 cursor-pointer"
                             >
                               <Trash2 size={12} />
@@ -391,9 +394,9 @@ export const SaleStaffManagement: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 border border-vintage-sepia-200 text-center space-y-4 text-xs font-medium">
             <AlertTriangle className="h-10 w-10 text-film-red mx-auto" />
-            <h3 className="font-serif font-bold text-base text-vintage-sepia-900">Xóa hồ sơ nhân viên</h3>
+            <h3 className="font-serif font-bold text-base text-vintage-sepia-900">Xác nhận xóa nhân sự</h3>
             <p className="text-warm-gray-700 text-center leading-relaxed">
-              Bạn có chắc chắn muốn xóa hồ sơ nhân viên này? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa hồ sơ nhân sự này? Hành động này không thể hoàn tác.
             </p>
             <div className="flex justify-center gap-3 pt-2">
               <button

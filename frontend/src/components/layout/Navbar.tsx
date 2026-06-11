@@ -30,7 +30,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPath }) => {
     { name: 'Khách hàng', path: '/customer-crm', icon: Users },
     { name: 'Lịch sử', path: '/reporting', icon: BarChart2 },
     { name: 'Nhân sự', path: '/staff-management', icon: Users },
-    { name: 'Hồ sơ & Quản trị hệ thống', path: '/profile-logs', icon: ClipboardList },
+    { name: 'Quản trị hệ thống', path: '/profile-logs', icon: ClipboardList },
   ];
 
   return (

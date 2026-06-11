@@ -4,6 +4,7 @@ import { Navbar } from './components/layout/Navbar.js';
 import { ToastNotification } from './components/ui/Toast.js';
 import { useUIStore } from './store/uiStore.js';
 import { axiosClient } from './api/axiosClient.js';
+import { ChevronRight } from 'lucide-react';
 
 // Import Custom Pages
 import { Home } from './pages/public/Home';
@@ -36,6 +37,18 @@ export const App: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuthStore();
   const { addToast } = useUIStore();
   const [selectedProductSlug, setSelectedProductSlug] = useState<string | null>(null);
+
+  const [isSidebarHidden, setIsSidebarHidden] = useState(() => {
+    return localStorage.getItem('sidebar_hidden') === 'true';
+  });
+
+  const toggleSidebar = () => {
+    setIsSidebarHidden(prev => {
+      const next = !prev;
+      localStorage.setItem('sidebar_hidden', String(next));
+      return next;
+    });
+  };
 
   // Set default starting page based on role and auth state
   const getDefaultPath = () => {
@@ -165,8 +178,22 @@ export const App: React.FC = () => {
 
   if (isAuthenticated && isManagementPath) {
     return (
-      <div className="flex min-h-screen bg-vintage-sepia-50">
-        <Sidebar onNavigate={handleNavigate} currentPath={currentPath} />
+      <div className="flex min-h-screen bg-vintage-sepia-50 relative">
+        {isSidebarHidden && (
+          <button
+            onClick={toggleSidebar}
+            title="Hiện thanh công cụ"
+            className="fixed top-6 left-0 z-50 flex items-center justify-center bg-vintage-sepia-900 text-vintage-gold border-r border-y border-vintage-sepia-800 rounded-r-lg p-2.5 shadow-lg cursor-pointer hover:bg-vintage-gold hover:text-vintage-sepia-950 transition-all hover:scale-105 duration-200"
+          >
+            <ChevronRight size={18} />
+          </button>
+        )}
+        <Sidebar 
+          onNavigate={handleNavigate} 
+          currentPath={currentPath} 
+          isHidden={isSidebarHidden}
+          onToggle={toggleSidebar}
+        />
         <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
           <main className="flex-1 w-full mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
             {currentPath === '/home' && <DashboardHome />}

@@ -3,16 +3,18 @@ import { useAuthStore } from '../../store/authStore.js';
 import { 
   Users, ClipboardList, Package, ShieldAlert,
   BarChart2, CheckSquare, UserCheck, LogOut,
-  Camera, Tag, ChevronDown, ChevronRight, CreditCard,
+  Camera, Tag, ChevronDown, ChevronRight, ChevronLeft, CreditCard,
   ShoppingCart, ArrowDownToLine
 } from 'lucide-react';
 
 interface SidebarProps {
   onNavigate: (path: string) => void;
   currentPath: string;
+  isHidden: boolean;
+  onToggle: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHidden, onToggle }) => {
   const { user, logout } = useAuthStore();
 
   const isMuonPath = ['/rentals-pos', '/inventory', '/customer-crm', '/reporting', '/muon-expenses', '/staff-management', '/rental-import'].includes(currentPath);
@@ -105,21 +107,32 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => 
   };
 
   return (
-    <aside className="w-64 bg-vintage-sepia-900 text-vintage-sepia-100 flex flex-col h-screen sticky top-0 border-r border-vintage-sepia-800 shrink-0">
+    <aside className={`bg-vintage-sepia-900 text-vintage-sepia-100 flex flex-col h-screen sticky top-0 border-r border-vintage-sepia-800 shrink-0 transition-all duration-300 ${
+      isHidden ? 'w-0 border-r-0 overflow-hidden opacity-0' : 'w-64 opacity-100'
+    }`}>
       {/* Title */}
       <div 
-        onClick={() => {
-          if (role === 'ADMIN') {
-            onNavigate('/home');
-          }
-        }}
-        className={`h-20 flex items-center justify-center border-b border-vintage-sepia-800 px-6 select-none ${
-          role === 'ADMIN' ? 'cursor-pointer hover:bg-vintage-sepia-800/30 transition-all' : ''
-        }`}
+        className={`h-20 flex items-center justify-between border-b border-vintage-sepia-800 px-6 select-none`}
       >
-        <h2 className="font-serif text-lg font-bold tracking-wider text-vintage-gold uppercase text-center">
-          Hệ thống TheFilmery
+        <h2 
+          onClick={() => {
+            if (role === 'ADMIN') {
+              onNavigate('/home');
+            }
+          }}
+          className={`font-serif text-lg font-bold tracking-wider text-vintage-gold uppercase ${
+            role === 'ADMIN' ? 'cursor-pointer hover:text-vintage-gold/80 transition-all' : ''
+          }`}
+        >
+          THEFILMERY
         </h2>
+        <button 
+          onClick={onToggle}
+          title="Ẩn thanh công cụ"
+          className="p-1.5 rounded-md hover:bg-vintage-sepia-800 text-vintage-sepia-400 hover:text-vintage-gold transition-all cursor-pointer"
+        >
+          <ChevronLeft size={16} />
+        </button>
       </div>
 
       {/* Navigation Links */}
@@ -137,7 +150,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => 
             }`}
           >
             <ClipboardList size={15} className={currentPath === '/profile-logs' ? 'text-vintage-sepia-900' : 'text-vintage-sepia-400'} />
-            <span>Hồ sơ & Quản trị hệ thống</span>
+            <span>Quản trị hệ thống</span>
           </button>
         </div>
       </nav>

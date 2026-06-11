@@ -40,6 +40,7 @@ export const SaleImport: React.FC = () => {
   const [records, setRecords] = useState<ImportRecord[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState<string>(String(now.getMonth() + 1));
@@ -83,6 +84,10 @@ export const SaleImport: React.FC = () => {
       const prodRes = await axiosClient.get('/sale-products');
       if (prodRes.data.success) {
         setProducts(prodRes.data.data || []);
+      }
+      const catRes = await axiosClient.get('/categories');
+      if (catRes.data.success) {
+        setCategories(catRes.data.data || []);
       }
     } catch (err) {
       console.error('Lỗi khi tải dữ liệu cấu hình:', err);
@@ -449,14 +454,17 @@ export const SaleImport: React.FC = () => {
                       </div>
                       <div>
                         <label className="block mb-1 text-[10px] uppercase text-warm-gray-600">Danh mục *</label>
-                        <input
-                          type="text"
+                        <select
                           required
-                          placeholder="SLR..."
                           value={newProductDetails.categoryName}
                           onChange={(e) => setNewProductDetails({ ...newProductDetails, categoryName: e.target.value })}
-                          className="w-full px-2 py-1.5 border border-vintage-sepia-200 bg-white rounded text-warm-gray-900 focus:outline-none"
-                        />
+                          className="w-full px-2 py-1.5 border border-vintage-sepia-200 bg-white rounded text-warm-gray-900 focus:outline-none cursor-pointer"
+                        >
+                          <option value="">-- Chọn danh mục --</option>
+                          {categories.map(cat => (
+                            <option key={cat.id} value={cat.name}>{cat.name}</option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <label className="block mb-1 text-[10px] uppercase text-warm-gray-600">Giá bán (₫) *</label>
