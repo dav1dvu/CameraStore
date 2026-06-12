@@ -200,8 +200,28 @@ export const RentalsPOS: React.FC = () => {
     cameraModelId: '',
     startDate: '',
     endDate: '',
-    depositAmount: 2000000 as number | ''
+    depositAmount: '2000000' as string
   });
+
+  // Hour tracking state
+  const [deliveredHour, setDeliveredHour] = useState('');
+  const [returnedHour, setReturnedHour] = useState('');
+
+  const openCheckinModal = () => {
+    setSelectedDeliveredBy('');
+    const now = new Date();
+    const currentHourStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    setDeliveredHour(currentHourStr);
+    setShowCheckinModal(true);
+  };
+
+  const openCheckoutModal = () => {
+    setSelectedReceivedBy('');
+    const now = new Date();
+    const currentHourStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    setReturnedHour(currentHourStr);
+    setShowCheckoutModal(true);
+  };
 
   // Keyboard customer input + autocomplete states
   const [customerName, setCustomerName] = useState('');
@@ -297,7 +317,8 @@ export const RentalsPOS: React.FC = () => {
     try {
       const res = await axiosClient.post(`/bookings/${booking.id}/checkin`, {
         accessories: [],
-        deliveredBy
+        deliveredBy,
+        gioNhan: deliveredHour
       });
       if (res.data.success) {
         addToast('Bàn giao máy thành công. Thiết bị chuyển sang trạng thái ĐANG THUÊ', 'success');
@@ -322,8 +343,9 @@ export const RentalsPOS: React.FC = () => {
         bookingId: booking.id,
         isDamaged,
         damageCharge,
-        notes: notes || 'Hoàn trả máy sạch sẽ',
-        receivedBy
+        notes: 'Hoàn trả máy sạch sẽ',
+        receivedBy,
+        gioTra: returnedHour
       });
 
       if (res.data.success) {
@@ -437,7 +459,7 @@ export const RentalsPOS: React.FC = () => {
         cameraModelId: posForm.cameraModelId,
         startDate: posForm.startDate,
         endDate: posForm.endDate,
-        depositAmount: posForm.depositAmount === '' ? undefined : Number(posForm.depositAmount),
+        depositAmount: posForm.depositAmount === '' ? undefined : posForm.depositAmount,
         batteryProductId: selectedBatteryId ? Number(selectedBatteryId) : undefined,
         batteryQuantity: selectedBatteryId ? Number(batteryQty) : undefined
       });
@@ -752,41 +774,19 @@ export const RentalsPOS: React.FC = () => {
 
               {/* Handover Checkin Ghi Chú panel */}
               {(booking.status === 'CONFIRMED' || booking.status === 'PENDING') && (
-                <div className="bg-vintage-sepia-50 p-5 rounded-lg border border-vintage-sepia-200 space-y-4">
-                  <h3 className="font-serif font-bold text-sm text-vintage-sepia-900 border-b border-vintage-sepia-200 pb-2">
-                    Biên bản Ghi chú Bàn giao máy
-                  </h3>
-                  
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
-                      Ghi chú tình trạng bàn giao máy
-                    </label>
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Ghi chú cụ thể tình trạng thân máy, ống kính lúc bàn giao..."
-                      rows={3}
-                      className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-3 pt-4 border-t border-vintage-sepia-200/50">
-                    <button
-                      onClick={handleCancelBooking}
-                      className="px-5 py-2.5 rounded bg-red-600 hover:bg-red-700 text-white font-bold cursor-pointer transition-colors"
-                    >
-                      Hủy đơn
-                    </button>
-                    <button
-                      onClick={() => {
-                        setSelectedDeliveredBy('');
-                        setShowCheckinModal(true);
-                      }}
-                      className="px-5 py-2.5 rounded bg-muted-green-600 hover:bg-muted-green-800 text-white font-bold cursor-pointer"
-                    >
-                      Xác nhận giao máy
-                    </button>
-                  </div>
+                <div className="bg-vintage-sepia-50 p-5 rounded-lg border border-vintage-sepia-200 flex justify-end gap-3">
+                  <button
+                    onClick={handleCancelBooking}
+                    className="px-5 py-2.5 rounded bg-red-600 hover:bg-red-700 text-white font-bold cursor-pointer transition-colors text-xs"
+                  >
+                    Hủy đơn
+                  </button>
+                  <button
+                    onClick={openCheckinModal}
+                    className="px-5 py-2.5 rounded bg-muted-green-600 hover:bg-muted-green-800 text-white font-bold cursor-pointer text-xs"
+                  >
+                    Xác nhận giao máy
+                  </button>
                 </div>
               )}
 
@@ -826,25 +826,11 @@ export const RentalsPOS: React.FC = () => {
                     </div>
                   )}
 
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
-                      Biên bản ghi nhận tình trạng máy khi nhận lại
-                    </label>
-                    <textarea
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Ghi chú cụ thể tình trạng thân máy, ống kính lúc trả..."
-                      rows={3}
-                      className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
-                    />
-                  </div>
-
                   <div className="flex justify-end">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
-                        setSelectedReceivedBy('');
-                        setShowCheckoutModal(true);
+                        openCheckoutModal();
                       }}
                       className="px-5 py-2.5 rounded bg-film-red text-white font-bold hover:bg-film-red-light text-xs uppercase cursor-pointer"
                     >
@@ -916,6 +902,17 @@ export const RentalsPOS: React.FC = () => {
                 ))}
               </select>
             </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
+                Giờ giao máy
+              </label>
+              <input
+                type="time"
+                value={deliveredHour}
+                onChange={e => setDeliveredHour(e.target.value)}
+                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
+              />
+            </div>
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setShowCheckinModal(false)}
@@ -963,6 +960,17 @@ export const RentalsPOS: React.FC = () => {
                   </option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
+                Giờ nhận máy
+              </label>
+              <input
+                type="time"
+                value={returnedHour}
+                onChange={e => setReturnedHour(e.target.value)}
+                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
+              />
             </div>
             <div className="flex justify-end gap-3 pt-2">
               <button
@@ -1127,18 +1135,17 @@ export const RentalsPOS: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-warm-gray-700 mb-1">Số tiền đặt cọc thỏa thuận (₫)</label>
+                <label className="block font-bold text-warm-gray-700 mb-1">Đặt cọc</label>
                 <div className="relative">
                   <input
-                    type="number"
-                    min="0"
+                    type="text"
                     value={posForm.depositAmount}
-                    onChange={(e) => setPosForm({ ...posForm, depositAmount: e.target.value === '' ? '' : Number(e.target.value) })}
+                    onChange={(e) => setPosForm({ ...posForm, depositAmount: e.target.value })}
                     className="w-full pl-8 pr-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg font-bold"
                   />
                   <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                 </div>
-                <p className="text-[10px] text-warm-gray-700 mt-1 italic">Thông thường bằng 50%-100% giá trị thẩm định của thiết bị máy ảnh cơ. (Để trống sẽ sử dụng giá trị cọc mặc định của máy)</p>
+                <p className="text-[10px] text-warm-gray-700 mt-1 italic">Thông thường bằng 50%-100% giá trị thẩm định của thiết bị máy ảnh cơ. (Có thể để trống hoặc nhập văn bản tự do, ví dụ: Giữ CCCD)</p>
               </div>
 
               <div className="pt-4 border-t border-vintage-sepia-200 flex justify-end">

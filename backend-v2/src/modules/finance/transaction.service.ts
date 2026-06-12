@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../../config/supabase.js';
 import { ProductService } from '../inventory/product.service.js';
+import { calculateRentalDaysWithThreshold } from '../rentals-pos/booking.service.js';
 
 export interface SettlementPayload {
   bookingId: string | number;
@@ -7,16 +8,17 @@ export interface SettlementPayload {
   damageCharge: number;
   notes: string;
   receivedBy?: number;
+  gioTra?: string;
 }
 
 export class TransactionService {
   static async settleDeposit(payload: SettlementPayload) {
-    const { bookingId, isDamaged, damageCharge, notes, receivedBy } = payload;
+    const { bookingId, isDamaged, damageCharge, notes, receivedBy, gioTra } = payload;
 
     // 1. Fetch booking to make sure it exists
     const { data: booking, error: fetchErr } = await supabaseAdmin
       .from('bookings')
-      .select('id, total_rent_fee')
+      .select('id, total_rent_fee, deposit_fee, start_date, end_date')
       .eq('id', bookingId)
       .single();
 
@@ -30,7 +32,10 @@ export class TransactionService {
       .select(`
         equipment_id,
         equipments (
-          product_id
+          product_id,
+          products (
+            rent_price_per_day
+          )
         )
       `)
       .eq('booking_id', bookingId)
@@ -40,7 +45,30 @@ export class TransactionService {
       console.error('No equipment found for this booking to release:', eqErr);
     }
 
-    // 3. Update booking status to CHECKED_OUT and record penalty
+    const pricePerDay = Number((bookingEq?.equipments as any)?.products?.rent_price_per_day || 0);
+    const start = new Date(booking.start_date);
+    const end = new Date(booking.end_date);
+    const days = calculateRentalDaysWithThreshold(start, end);
+    const baseFee = pricePerDay * days;
+
+    let extraCharge = 0;
+    if (gioTra && typeof gioTra === 'string' && gioTra.includes(':')) {
+      const [hours, minutes] = gioTra.split(':').map(Number);
+      const minutesTotal = hours * 60 + minutes;
+
+      const limit22 = 22 * 60;
+      const limit22_30 = 22 * 60 + 30;
+
+      if (minutesTotal > limit22 && minutesTotal <= limit22_30) {
+        extraCharge = 0.5 * pricePerDay;
+      } else if (minutesTotal > limit22_30) {
+        extraCharge = 1.0 * pricePerDay;
+      }
+    }
+
+    const finalRentFee = baseFee + extraCharge;
+
+    // 3. Update booking status to CHECKED_OUT, record penalty, return hour, and final rent fee
     const { error: bookingUpdateErr } = await supabaseAdmin
       .from('bookings')
       .update({
@@ -48,7 +76,9 @@ export class TransactionService {
         penalty_fee: damageCharge || 0,
         deposit_status: damageCharge > 0 ? 'DEDUCTED' : 'REFUNDED',
         received_by: receivedBy || null,
-        notes: notes || null
+        notes: notes || null,
+        gio_tra: gioTra || null,
+        total_rent_fee: finalRentFee
       })
       .eq('id', bookingId);
 
@@ -72,13 +102,23 @@ export class TransactionService {
       }
     }
 
+    const depVal = Number(booking.deposit_fee);
+    const depositFeeNum = isNaN(depVal) ? 0 : depVal;
+    
+    let refundAmount = 0;
+    if (depositFeeNum > 0) {
+      refundAmount = Math.max(0, depositFeeNum - damageCharge - extraCharge);
+    } else {
+      refundAmount = Math.max(0, finalRentFee - damageCharge - extraCharge);
+    }
+
     return {
       success: true,
       overdue_days: 0,
       overdue_charge: 0,
       damage_charge: damageCharge,
       total_deduction: damageCharge,
-      refund_amount: Math.max(0, Number(booking.total_rent_fee) - damageCharge),
+      refund_amount: refundAmount,
       penalty_owed: 0
     };
   }

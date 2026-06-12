@@ -5,7 +5,8 @@ import { BookingService } from './booking.service.js';
 
 const checkInSchema = z.object({
   accessories: z.array(z.string()).optional().default([]),
-  deliveredBy: z.number().optional()
+  deliveredBy: z.number().optional(),
+  gioNhan: z.string().optional()
 });
 
 const returnAccessoriesSchema = z.object({
@@ -46,7 +47,7 @@ export class BookingController {
         endDate,
         batteryProductId: batteryProductId ? Number(batteryProductId) : undefined,
         batteryQuantity: batteryQuantity ? Number(batteryQuantity) : undefined,
-        depositAmount: depositAmount !== undefined && depositAmount !== null && depositAmount !== '' ? Number(depositAmount) : undefined
+        depositAmount: depositAmount !== undefined && depositAmount !== null && depositAmount !== '' ? String(depositAmount) : undefined
       });
 
       res.status(201).json({
@@ -112,7 +113,8 @@ export class BookingController {
         bookingId,
         parsed.data.accessories,
         staffId,
-        parsed.data.deliveredBy
+        parsed.data.deliveredBy,
+        parsed.data.gioNhan
       );
       res.status(200).json({
         success: true,

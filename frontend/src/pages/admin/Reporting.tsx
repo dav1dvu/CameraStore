@@ -26,6 +26,8 @@ interface OrderHistoryItem {
   createdAt: string;
   batteryName?: string | null;
   batteryQuantity?: number;
+  gioNhan?: string;
+  gioTra?: string;
 }
 
 interface Employee {
@@ -67,7 +69,9 @@ export const Reporting: React.FC = () => {
     status: '',
     deliveredBy: '',
     receivedBy: '',
-    notes: ''
+    notes: '',
+    gioNhan: '',
+    gioTra: ''
   });
 
   // Custom Confirm Delete State
@@ -170,7 +174,9 @@ export const Reporting: React.FC = () => {
       status: item.status,
       deliveredBy: item.deliveredBy ? String(item.deliveredBy) : '',
       receivedBy: item.receivedBy ? String(item.receivedBy) : '',
-      notes: item.notes
+      notes: item.notes || '',
+      gioNhan: item.gioNhan || '',
+      gioTra: item.gioTra || ''
     });
   };
 
@@ -192,7 +198,9 @@ export const Reporting: React.FC = () => {
         status: editFormData.status,
         deliveredBy: editFormData.deliveredBy ? Number(editFormData.deliveredBy) : null,
         receivedBy: editFormData.receivedBy ? Number(editFormData.receivedBy) : null,
-        notes: editFormData.notes
+        notes: editFormData.notes,
+        gioNhan: editFormData.gioNhan,
+        gioTra: editFormData.gioTra
       });
 
       if (res.data.success) {
@@ -379,7 +387,9 @@ export const Reporting: React.FC = () => {
               <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider">
                 <th className="p-3 w-24">Hình thức</th>
                 <th className="p-3 w-36">Ngày bắt đầu</th>
+                <th className="p-3 w-24">Giờ giao</th>
                 <th className="p-3 w-36">Ngày trả</th>
+                <th className="p-3 w-24">Giờ trả</th>
                 <th className="p-3">Tên khách hàng</th>
                 <th className="p-3 w-28">Số điện thoại</th>
                 <th className="p-3 w-36">Địa chỉ</th>
@@ -389,6 +399,7 @@ export const Reporting: React.FC = () => {
                 <th className="p-3 w-28">Trạng thái</th>
                 <th className="p-3 w-28">Người giao</th>
                 <th className="p-3 w-28">Người nhận</th>
+                <th className="p-3 w-40">Ghi chú</th>
                 <th className="p-3 text-center w-24">Hành động</th>
               </tr>
             </thead>
@@ -421,6 +432,21 @@ export const Reporting: React.FC = () => {
                       )}
                     </td>
 
+                    {/* Giờ giao */}
+                    <td className="p-3 font-mono">
+                      {isEditing && item.type === 'RENTAL' ? (
+                        <input
+                          type="text"
+                          value={editFormData.gioNhan}
+                          onChange={e => setEditFormData({ ...editFormData, gioNhan: e.target.value })}
+                          placeholder="e.g. 09:30"
+                          className="w-full px-1.5 py-1 rounded border border-vintage-sepia-200 bg-white text-xs"
+                        />
+                      ) : (
+                        item.type === 'RENTAL' ? (item.gioNhan || '-') : '-'
+                      )}
+                    </td>
+
                     {/* Ngày trả */}
                     <td className="p-3 font-mono">
                       {isEditing && item.type === 'RENTAL' ? (
@@ -432,6 +458,21 @@ export const Reporting: React.FC = () => {
                         />
                       ) : (
                         item.type === 'RENTAL' ? item.endDate.substring(0, 10) : '-'
+                      )}
+                    </td>
+
+                    {/* Giờ trả */}
+                    <td className="p-3 font-mono">
+                      {isEditing && item.type === 'RENTAL' ? (
+                        <input
+                          type="text"
+                          value={editFormData.gioTra}
+                          onChange={e => setEditFormData({ ...editFormData, gioTra: e.target.value })}
+                          placeholder="e.g. 22:15"
+                          className="w-full px-1.5 py-1 rounded border border-vintage-sepia-200 bg-white text-xs"
+                        />
+                      ) : (
+                        item.type === 'RENTAL' ? (item.gioTra || '-') : '-'
                       )}
                     </td>
 
@@ -553,6 +594,20 @@ export const Reporting: React.FC = () => {
                         </select>
                       ) : (
                         item.type === 'RENTAL' ? (item.receivedByDetails?.staff_code || '-') : '-'
+                      )}
+                    </td>
+
+                    {/* Ghi chú */}
+                    <td className="p-3 truncate max-w-xs">
+                      {isEditing && item.type === 'RENTAL' ? (
+                        <input
+                          type="text"
+                          value={editFormData.notes}
+                          onChange={e => setEditFormData({ ...editFormData, notes: e.target.value })}
+                          className="w-full px-1.5 py-1 rounded border border-vintage-sepia-200 bg-white text-xs"
+                        />
+                      ) : (
+                        item.notes || '-'
                       )}
                     </td>
 

@@ -371,6 +371,8 @@ export class ReportingService {
         notes,
         battery_product_id,
         battery_quantity,
+        gio_nhan,
+        gio_tra,
         customers (
           id,
           first_name,
@@ -478,6 +480,8 @@ export class ReportingService {
           notes: b.notes || '',
           batteryName: b.battery?.name || null,
           batteryQuantity: b.battery_quantity || 0,
+          gioNhan: b.gio_nhan || '',
+          gioTra: b.gio_tra || '',
           createdAt: b.created_at
         });
       });
@@ -514,6 +518,8 @@ export class ReportingService {
           notes: b.notes || '',
           batteryName: b.battery?.name || null,
           batteryQuantity: b.battery_quantity || 0,
+          gioNhan: b.gio_nhan || '',
+          gioTra: b.gio_tra || '',
           createdAt: b.created_at
         });
       });
@@ -711,6 +717,8 @@ export class ReportingService {
       if (fields.deliveredBy !== undefined) bookingUpdates.delivered_by = fields.deliveredBy ? Number(fields.deliveredBy) : null;
       if (fields.receivedBy !== undefined) bookingUpdates.received_by = fields.receivedBy ? Number(fields.receivedBy) : null;
       if (fields.notes !== undefined) bookingUpdates.notes = fields.notes;
+      if (fields.gioNhan !== undefined) bookingUpdates.gio_nhan = fields.gioNhan;
+      if (fields.gioTra !== undefined) bookingUpdates.gio_tra = fields.gioTra;
 
       const { data, error } = await supabaseAdmin
         .from('bookings')

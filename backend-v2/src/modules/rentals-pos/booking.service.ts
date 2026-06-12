@@ -9,7 +9,7 @@ export interface BookingPayload {
   endDate: string; // YYYY-MM-DD
   batteryProductId?: number;
   batteryQuantity?: number;
-  depositAmount?: number;
+  depositAmount?: string;
 }
 
 function safeJsonParse(str: string | null | undefined): string[] {
@@ -24,23 +24,10 @@ function safeJsonParse(str: string | null | undefined): string[] {
 }
 
 export function calculateRentalDaysWithThreshold(start: Date, end: Date): number {
-  const getBlockDate = (d: Date): Date => {
-    const year = d.getFullYear();
-    const month = d.getMonth();
-    const date = d.getDate();
-    const hour = d.getHours();
-    
-    const blockDate = new Date(year, month, date);
-    if (hour >= 20) {
-      blockDate.setDate(blockDate.getDate() + 1);
-    }
-    return blockDate;
-  };
+  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
-  const blockStart = getBlockDate(start);
-  const blockEnd = getBlockDate(end);
-
-  const diffTime = blockEnd.getTime() - blockStart.getTime();
+  const diffTime = endDay.getTime() - startDay.getTime();
   const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
   return diffDays > 0 ? diffDays : 1;
 }
@@ -101,20 +88,63 @@ export class BookingService {
     const totalRentalFee = pricePerDay * rentalDays;
     const finalDepositAmount = depositAmount !== undefined ? depositAmount : Number(model.deposit_amount);
 
-    // 3. Find an AVAILABLE equipment of this model directly in Node.js
-    const { data: availableEquips, error: equipErr } = await supabaseAdmin
+    // 3. Find an AVAILABLE equipment of this model directly in Node.js by checking overlapping bookings
+    const { data: allEquips, error: equipErr } = await supabaseAdmin
       .from('equipments')
-      .select('id, serial_number')
+      .select('id, serial_number, status')
       .eq('product_id', productId)
-      .eq('status', 'AVAILABLE')
-      .limit(1);
+      .not('status', 'in', '("MAINTENANCE","DAMAGED")');
 
     if (equipErr) throw equipErr;
-    if (!availableEquips || availableEquips.length === 0) {
+    if (!allEquips || allEquips.length === 0) {
       throw new Error('No available equipment items found for this camera model.');
     }
 
-    const equipment = availableEquips[0];
+    const equipIds = allEquips.map(e => e.id);
+
+    // Find all bookings mapped to these equipments that overlap with the requested date range and are active
+    const { data: activeBookingsLink, error: activeBookingsErr } = await supabaseAdmin
+      .from('booking_equipments')
+      .select(`
+        equipment_id,
+        booking_id,
+        bookings!inner (
+          start_date,
+          end_date,
+          booking_status
+        )
+      `)
+      .in('equipment_id', equipIds)
+      .not('bookings.booking_status', 'in', '("CANCELED","CANCELLED","CHECKED_OUT")');
+
+    if (activeBookingsErr) throw activeBookingsErr;
+
+    const qStartStr = startDate.substring(0, 10);
+    const qEndStr = endDate.substring(0, 10);
+
+    const busyEquipIds = new Set<number>();
+    if (activeBookingsLink) {
+      for (const link of activeBookingsLink) {
+        const bookingData = link.bookings as any;
+        if (bookingData) {
+          const bStartStr = bookingData.start_date.substring(0, 10);
+          const bEndStr = bookingData.end_date.substring(0, 10);
+
+          // Overlap check: booking start <= query end AND booking end >= query start
+          if (bStartStr <= qEndStr && bEndStr >= qStartStr) {
+            busyEquipIds.add(link.equipment_id);
+          }
+        }
+      }
+    }
+
+    // Pick the first equipment that is not busy
+    const availableEquipment = allEquips.find(e => !busyEquipIds.has(e.id));
+    if (!availableEquipment) {
+      throw new Error('No available equipment items found for this camera model.');
+    }
+
+    const equipment = availableEquipment;
 
     // 4. Create Booking record
     const { data: booking, error: bookingErr } = await supabaseAdmin
@@ -355,7 +385,7 @@ export class BookingService {
     return data;
   }
 
-  static async checkInBooking(bookingId: string | number, accessories: string[], staffId: string, deliveredBy?: number) {
+  static async checkInBooking(bookingId: string | number, accessories: string[], staffId: string, deliveredBy?: number, gioNhan?: string) {
     const { data: booking, error: fetchErr } = await supabaseAdmin
       .from('bookings')
       .select('booking_status')
@@ -374,7 +404,8 @@ export class BookingService {
       .update({
         booking_status: 'CHECKED_IN',
         checkin_date: new Date().toISOString(),
-        delivered_by: deliveredBy || null
+        delivered_by: deliveredBy || null,
+        gio_nhan: gioNhan || null
       })
       .eq('id', bookingId)
       .select()

@@ -5,7 +5,7 @@ import { TransactionService } from './transaction.service.js';
 export class TransactionController {
   static async settle(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const { bookingId, isDamaged, damageCharge, notes, receivedBy } = req.body;
+      const { bookingId, isDamaged, damageCharge, notes, receivedBy, gioTra } = req.body;
 
       if (!bookingId) {
         return res.status(400).json({
@@ -29,7 +29,8 @@ export class TransactionController {
         isDamaged: !!isDamaged,
         damageCharge: chargeNum,
         notes: notes || 'Returned',
-        receivedBy: receivedBy ? Number(receivedBy) : undefined
+        receivedBy: receivedBy ? Number(receivedBy) : undefined,
+        gioTra
       });
 
       res.status(200).json({
