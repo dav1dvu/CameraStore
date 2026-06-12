@@ -4,7 +4,7 @@ import { requireAuth, requireRole } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
 
-router.use(requireAuth, requireRole('ADMIN'));
+router.use(requireAuth, requireRole('ADMIN', 'NHANVIENTHUE'));
 
 router.get('/', EmployeeController.getAll);
 router.get('/:id', EmployeeController.getById);

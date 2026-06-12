@@ -15,8 +15,8 @@ router.post('/', requireRole('ADMIN', 'NHANVIENTHUE'), ProductController.createP
 router.put('/:id', requireRole('ADMIN', 'NHANVIENTHUE'), ProductController.updateProduct);
 router.delete('/:id', requireRole('ADMIN', 'NHANVIENTHUE'), ProductController.deleteProduct);
 
-// Price config management routes (Admin only)
-router.post('/:productId/price-configs', requireRole('ADMIN'), ProductController.addPriceConfig);
-router.delete('/price-configs/:id', requireRole('ADMIN'), ProductController.deletePriceConfig);
+// Price config management routes (Admin & Staff)
+router.post('/:productId/price-configs', requireRole('ADMIN', 'NHANVIENTHUE'), ProductController.addPriceConfig);
+router.delete('/price-configs/:id', requireRole('ADMIN', 'NHANVIENTHUE'), ProductController.deletePriceConfig);
 
 export default router;

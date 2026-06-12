@@ -28,7 +28,6 @@ export class ReportingService {
     const { data: bookings, error: bookingsErr } = await supabaseAdmin
       .from('bookings')
       .select('total_rent_fee, penalty_fee, created_at')
-      .not('booking_status', 'in', '("CANCELLED","CANCELED")')
       .gte('created_at', startOfYear)
       .lte('created_at', endOfYear);
 
@@ -356,7 +355,7 @@ export class ReportingService {
       .sort((a, b) => b.date.localeCompare(a.date));
   }
 
-  static async getOrderHistory(limit: number = 10, offset: number = 0, month?: number, year?: number) {
+  static async getOrderHistory(limit: number = 10, offset: number = 0, month?: number, year?: number, requestorRole?: string) {
     // 1. Fetch bookings
     let bookingsQuery = supabaseAdmin
       .from('bookings')
@@ -392,52 +391,121 @@ export class ReportingService {
       `);
 
     // 2. Fetch orders without order_items join
-    let ordersQuery = supabaseAdmin
-      .from('orders')
-      .select(`
-        order_id,
-        created_at,
-        total_price,
-        status,
-        customers (
+    let orders: any[] = [];
+    let orderItems: any[] = [];
+
+    if (requestorRole !== 'NHANVIENTHUE') {
+      let ordersQuery = supabaseAdmin
+        .from('orders')
+        .select(`
+          order_id,
+          created_at,
+          total_price,
+          status,
+          customers (
+            id,
+            first_name,
+            last_name,
+            phone_number,
+            address
+          )
+        `);
+
+      if (month && year) {
+        const startDateStr = `${year}-${String(month).padStart(2, '0')}-01T00:00:00.000Z`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDateStr = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59.999Z`;
+
+        bookingsQuery = bookingsQuery.gte('start_date', startDateStr).lte('start_date', endDateStr);
+        ordersQuery = ordersQuery.gte('created_at', startDateStr).lte('created_at', endDateStr);
+      }
+
+      const { data: bookingsData, error: bookingsErr } = await bookingsQuery.order('created_at', { ascending: false });
+      if (bookingsErr) throw bookingsErr;
+
+      const { data: ordersData, error: ordersErr } = await ordersQuery.order('created_at', { ascending: false });
+      if (ordersErr) throw ordersErr;
+
+      // Fetch order_items separately due to missing schema cache relationship
+      const { data: orderItemsData, error: itemsErr } = await supabaseAdmin
+        .from('order_items')
+        .select(`
           id,
-          first_name,
-          last_name,
-          phone_number,
-          address
-        )
-      `);
+          order_id,
+          quantity,
+          unit_price,
+          products (
+            name,
+            brand
+          )
+        `);
 
-    if (month && year) {
-      const startDateStr = `${year}-${String(month).padStart(2, '0')}-01T00:00:00.000Z`;
-      const lastDay = new Date(year, month, 0).getDate();
-      const endDateStr = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59.999Z`;
+      if (itemsErr) throw itemsErr;
 
-      bookingsQuery = bookingsQuery.gte('start_date', startDateStr).lte('start_date', endDateStr);
-      ordersQuery = ordersQuery.gte('created_at', startDateStr).lte('created_at', endDateStr);
+      orders = ordersData || [];
+      orderItems = orderItemsData || [];
+      // Keep bookings as is
+      (bookingsData || []).forEach((b: any) => {
+        const equipName = b.booking_equipments?.[0]?.equipments?.camera_models?.model_name || 'Thiết bị thuê';
+        history.push({
+          id: `booking-${b.id}`,
+          dbId: b.id,
+          type: 'RENTAL',
+          startDate: b.start_date,
+          endDate: b.end_date,
+          customerName: `${b.customers?.last_name || ''} ${b.customers?.first_name || ''}`.trim() || 'Khách thuê',
+          customerPhone: b.customers?.phone_number || '',
+          customerAddress: b.customers?.address || '',
+          productName: equipName,
+          revenue: Number(b.total_rent_fee || 0),
+          status: b.booking_status,
+          deliveredBy: b.delivered_by || null,
+          deliveredByDetails: empMap.get(b.delivered_by) || null,
+          receivedBy: b.received_by || null,
+          receivedByDetails: empMap.get(b.received_by) || null,
+          notes: b.notes || '',
+          batteryName: b.battery?.name || null,
+          batteryQuantity: b.battery_quantity || 0,
+          createdAt: b.created_at
+        });
+      });
+    } else {
+      if (month && year) {
+        const startDateStr = `${year}-${String(month).padStart(2, '0')}-01T00:00:00.000Z`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDateStr = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59.999Z`;
+
+        bookingsQuery = bookingsQuery.gte('start_date', startDateStr).lte('start_date', endDateStr);
+      }
+
+      const { data: bookingsData, error: bookingsErr } = await bookingsQuery.order('created_at', { ascending: false });
+      if (bookingsErr) throw bookingsErr;
+
+      (bookingsData || []).forEach((b: any) => {
+        const equipName = b.booking_equipments?.[0]?.equipments?.camera_models?.model_name || 'Thiết bị thuê';
+        history.push({
+          id: `booking-${b.id}`,
+          dbId: b.id,
+          type: 'RENTAL',
+          startDate: b.start_date,
+          endDate: b.end_date,
+          customerName: `${b.customers?.last_name || ''} ${b.customers?.first_name || ''}`.trim() || 'Khách thuê',
+          customerPhone: b.customers?.phone_number || '',
+          customerAddress: b.customers?.address || '',
+          productName: equipName,
+          revenue: Number(b.total_rent_fee || 0),
+          status: b.booking_status,
+          deliveredBy: b.delivered_by || null,
+          deliveredByDetails: empMap.get(b.delivered_by) || null,
+          receivedBy: b.received_by || null,
+          receivedByDetails: empMap.get(b.received_by) || null,
+          notes: b.notes || '',
+          batteryName: b.battery?.name || null,
+          batteryQuantity: b.battery_quantity || 0,
+          createdAt: b.created_at
+        });
+      });
     }
-
-    const { data: bookings, error: bookingsErr } = await bookingsQuery.order('created_at', { ascending: false });
-    if (bookingsErr) throw bookingsErr;
-
-    const { data: orders, error: ordersErr } = await ordersQuery.order('created_at', { ascending: false });
-    if (ordersErr) throw ordersErr;
-
-    // Fetch order_items separately due to missing schema cache relationship
-    const { data: orderItems, error: itemsErr } = await supabaseAdmin
-      .from('order_items')
-      .select(`
-        id,
-        order_id,
-        quantity,
-        unit_price,
-        products (
-          name,
-          brand
-        )
-      `);
-
-    if (itemsErr) throw itemsErr;
 
     const orderItemsMap: Record<string | number, any[]> = {};
     (orderItems || []).forEach((item: any) => {
@@ -462,30 +530,7 @@ export class ReportingService {
     // 4. Combine and format
     const history: any[] = [];
 
-    (bookings || []).forEach((b: any) => {
-      const equipName = b.booking_equipments?.[0]?.equipments?.camera_models?.model_name || 'Thiết bị thuê';
-      history.push({
-        id: `booking-${b.id}`,
-        dbId: b.id,
-        type: 'RENTAL',
-        startDate: b.start_date,
-        endDate: b.end_date,
-        customerName: `${b.customers?.last_name || ''} ${b.customers?.first_name || ''}`.trim() || 'Khách thuê',
-        customerPhone: b.customers?.phone_number || '',
-        customerAddress: b.customers?.address || '',
-        productName: equipName,
-        revenue: Number(b.total_rent_fee || 0),
-        status: b.booking_status,
-        deliveredBy: b.delivered_by || null,
-        deliveredByDetails: empMap.get(b.delivered_by) || null,
-        receivedBy: b.received_by || null,
-        receivedByDetails: empMap.get(b.received_by) || null,
-        notes: b.notes || '',
-        batteryName: b.battery?.name || null,
-        batteryQuantity: b.battery_quantity || 0,
-        createdAt: b.created_at
-      });
-    });
+    // We populated history in the conditional blocks above instead of here
 
     (orders || []).forEach((o: any) => {
       const oItems = orderItemsMap[o.order_id] || [];
@@ -523,7 +568,7 @@ export class ReportingService {
     };
   }
 
-  static async getOrderHistorySummary(month: number, year: number) {
+  static async getOrderHistorySummary(month: number, year: number, requestorRole?: string) {
     const startDateStr = `${year}-${String(month).padStart(2, '0')}-01T00:00:00.000Z`;
     const lastDay = new Date(year, month, 0).getDate();
     const endDateStr = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59.999Z`;
@@ -542,39 +587,45 @@ export class ReportingService {
           )
         )
       `)
-      .not('booking_status', 'in', '("CANCELLED","CANCELED")')
       .gte('start_date', startDateStr)
       .lte('start_date', endDateStr);
 
     if (bookingsErr) throw bookingsErr;
 
     // 2. Fetch orders in month based on created_at
-    const { data: orders, error: ordersErr } = await supabaseAdmin
-      .from('orders')
-      .select(`
-        order_id,
-        total_price,
-        status
-      `)
-      .not('status', 'in', '("CANCELLED","CANCELED")')
-      .gte('created_at', startDateStr)
-      .lte('created_at', endDateStr);
+    let orders: any[] = [];
+    let orderItems: any[] = [];
 
-    if (ordersErr) throw ordersErr;
+    if (requestorRole !== 'NHANVIENTHUE') {
+      const { data: ordersData, error: ordersErr } = await supabaseAdmin
+        .from('orders')
+        .select(`
+          order_id,
+          total_price,
+          status
+        `)
+        .not('status', 'in', '("CANCELLED","CANCELED")')
+        .gte('created_at', startDateStr)
+        .lte('created_at', endDateStr);
 
-    // Fetch order_items separately
-    const { data: orderItems, error: itemsErr } = await supabaseAdmin
-      .from('order_items')
-      .select(`
-        order_id,
-        quantity,
-        unit_price,
-        products (
-          name
-        )
-      `);
+      if (ordersErr) throw ordersErr;
+      orders = ordersData || [];
 
-    if (itemsErr) throw itemsErr;
+      // Fetch order_items separately
+      const { data: orderItemsData, error: itemsErr } = await supabaseAdmin
+        .from('order_items')
+        .select(`
+          order_id,
+          quantity,
+          unit_price,
+          products (
+            name
+          )
+        `);
+
+      if (itemsErr) throw itemsErr;
+      orderItems = orderItemsData || [];
+    }
 
     const orderItemsMap: Record<string | number, any[]> = {};
     (orderItems || []).forEach((item: any) => {
@@ -793,7 +844,6 @@ export class ReportingService {
     const { data: bookings, error: bookingsErr } = await supabaseAdmin
       .from('bookings')
       .select('total_rent_fee, penalty_fee')
-      .not('booking_status', 'in', '("CANCELLED","CANCELED")')
       .gte('start_date', startDateStr)
       .lte('start_date', endDateStr);
 

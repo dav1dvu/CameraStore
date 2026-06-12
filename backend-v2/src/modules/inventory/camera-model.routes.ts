@@ -11,6 +11,6 @@ router.get('/:id/availability', CameraModelController.checkAvailability);
 router.get('/:id', CameraModelController.getById);
 router.post('/', requireRole('ADMIN', 'NHANVIENTHUE'), CameraModelController.create);
 router.put('/:id', requireRole('ADMIN', 'NHANVIENTHUE'), CameraModelController.update);
-router.delete('/:id', requireRole('ADMIN'), CameraModelController.delete);
+router.delete('/:id', requireRole('ADMIN', 'NHANVIENTHUE'), CameraModelController.delete);
 
 export default router;

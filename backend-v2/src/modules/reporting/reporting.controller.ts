@@ -97,7 +97,7 @@ export class ReportingController {
       const month = req.query.month ? Number(req.query.month) : undefined;
       const year = req.query.year ? Number(req.query.year) : undefined;
 
-      const result = await ReportingService.getOrderHistory(limit, offset, month, year);
+      const result = await ReportingService.getOrderHistory(limit, offset, month, year, (req as any).user?.role);
       res.status(200).json({
         success: true,
         data: result,
@@ -117,7 +117,7 @@ export class ReportingController {
         return res.status(400).json({ success: false, message: 'month và year là bắt buộc để lấy tổng kết' });
       }
 
-      const result = await ReportingService.getOrderHistorySummary(month, year);
+      const result = await ReportingService.getOrderHistorySummary(month, year, (req as any).user?.role);
       res.status(200).json({
         success: true,
         data: result,
@@ -131,6 +131,9 @@ export class ReportingController {
   static async updateOrderHistory(req: Request, res: Response, next: NextFunction) {
     try {
       const { type, id } = req.params;
+      if ((req as any).user?.role === 'NHANVIENTHUE' && type === 'order') {
+        return res.status(403).json({ success: false, error: 'Quyền hạn không hợp lệ: Không thể chỉnh sửa đơn bán đứt!' });
+      }
       const result = await ReportingService.updateOrderHistoryItem(type, id, req.body);
       res.status(200).json({
         success: true,
@@ -145,6 +148,9 @@ export class ReportingController {
   static async deleteOrderHistory(req: Request, res: Response, next: NextFunction) {
     try {
       const { type, id } = req.params;
+      if ((req as any).user?.role === 'NHANVIENTHUE' && type === 'order') {
+        return res.status(403).json({ success: false, error: 'Quyền hạn không hợp lệ: Không thể xóa đơn bán đứt!' });
+      }
       const result = await ReportingService.deleteOrderHistoryItem(type, id);
       res.status(200).json({
         success: true,

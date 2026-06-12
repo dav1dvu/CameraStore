@@ -33,9 +33,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHid
 
   const hasAccess = (path: string) => {
     if (role === 'ADMIN') return true;
-    if (path === '/staff-management' || path === '/sale-staff') return false;
-    if (path === '/reporting' || path === '/sale-order-history') return false;
-    return true;
+    
+    if (role === 'NHANVIENBAN') {
+      const isBanPath = ['/sale-order-create', '/sale-order-history', '/sale-inventory', '/sale-import', '/sale-expenses', '/sale-staff', '/sale-customers', '/profile-logs'].includes(path);
+      return isBanPath;
+    }
+    
+    if (role === 'NHANVIENTHUE') {
+      const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/muon-expenses', '/staff-management', '/profile-logs'].includes(path);
+      return isMuonPath;
+    }
+    
+    return false;
   };
 
   const muonItems = [

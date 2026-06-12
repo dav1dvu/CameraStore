@@ -237,6 +237,9 @@ export const Reporting: React.FC = () => {
           return <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold uppercase text-[9px]">Đã lấy</span>;
         case 'CHECKED_OUT':
           return <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded font-bold uppercase text-[9px]">Đã trả</span>;
+        case 'CANCELLED':
+        case 'CANCELED':
+          return <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded font-bold uppercase text-[9px]">Đã hủy</span>;
         default:
           return <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded font-bold uppercase text-[9px]">{item.status}</span>;
       }
@@ -248,6 +251,9 @@ export const Reporting: React.FC = () => {
           return <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold uppercase text-[9px]">Đã lấy</span>;
         case 'COMPLETED':
           return <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded font-bold uppercase text-[9px]">Hoàn tất</span>;
+        case 'CANCELLED':
+        case 'CANCELED':
+          return <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded font-bold uppercase text-[9px]">Đã hủy</span>;
         default:
           return <span className="bg-gray-100 text-gray-800 px-2 py-0.5 rounded font-bold uppercase text-[9px]">{item.status}</span>;
       }

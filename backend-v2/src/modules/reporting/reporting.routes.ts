@@ -5,7 +5,7 @@ import { ReportingController } from './reporting.controller.js';
 const router = Router();
 
 router.use(requireAuth);
-router.use(requireRole('ADMIN'));
+router.use(requireRole('ADMIN', 'NHANVIENTHUE'));
 
 router.get('/revenue', ReportingController.getRevenue);
 router.get('/top-rentals', ReportingController.getTopRentals);

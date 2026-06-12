@@ -19,19 +19,65 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPath }) => {
 
   // Helper to check if user has access to page
   const hasAccess = (path: string) => {
-    if (path === '/system-auth') return role === 'ADMIN';
-    if (path === '/reporting') return role === 'ADMIN';
-    return true; 
+    if (role === 'ADMIN') return true;
+    if (path === '/system-auth') return false;
+    
+    if (role === 'NHANVIENBAN') {
+      const isBanPath = ['/sale-order-create', '/sale-order-history', '/sale-inventory', '/sale-import', '/sale-expenses', '/sale-staff', '/sale-customers', '/profile-logs'].includes(path);
+      return isBanPath;
+    }
+    
+    if (role === 'NHANVIENTHUE') {
+      const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/muon-expenses', '/staff-management', '/profile-logs'].includes(path);
+      return isMuonPath;
+    }
+    
+    return false;
   };
 
-  const modules = [
-    { name: 'Lập đơn', path: '/rentals-pos', icon: CheckSquare },
-    { name: 'Kho máy', path: '/inventory', icon: Package },
-    { name: 'Khách hàng', path: '/customer-crm', icon: Users },
-    { name: 'Lịch sử', path: '/reporting', icon: BarChart2 },
-    { name: 'Nhân sự', path: '/staff-management', icon: Users },
-    { name: 'Quản trị hệ thống', path: '/profile-logs', icon: ClipboardList },
-  ];
+  const getModules = () => {
+    if (role === 'ADMIN') {
+      return [
+        { name: 'Lập đơn (Thuê)', path: '/rentals-pos', icon: CheckSquare },
+        { name: 'Kho máy (Thuê)', path: '/inventory', icon: Package },
+        { name: 'Khách hàng (Thuê)', path: '/customer-crm', icon: Users },
+        { name: 'Lịch sử (Thuê)', path: '/reporting', icon: BarChart2 },
+        { name: 'Nhân sự (Thuê)', path: '/staff-management', icon: Users },
+        { name: 'Lập đơn (Bán)', path: '/sale-order-create', icon: CheckSquare },
+        { name: 'Kho máy (Bán)', path: '/sale-inventory', icon: Package },
+        { name: 'Nhập kho (Bán)', path: '/sale-import', icon: Package },
+        { name: 'Khách hàng (Bán)', path: '/sale-customers', icon: Users },
+        { name: 'Lịch sử (Bán)', path: '/sale-order-history', icon: BarChart2 },
+        { name: 'Nhân sự (Bán)', path: '/sale-staff', icon: Users },
+        { name: 'Quản trị hệ thống', path: '/profile-logs', icon: ClipboardList },
+      ];
+    }
+    if (role === 'NHANVIENBAN') {
+      return [
+        { name: 'Lập đơn', path: '/sale-order-create', icon: CheckSquare },
+        { name: 'Kho máy', path: '/sale-inventory', icon: Package },
+        { name: 'Nhập kho', path: '/sale-import', icon: Package },
+        { name: 'Khách hàng', path: '/sale-customers', icon: Users },
+        { name: 'Lịch sử', path: '/sale-order-history', icon: BarChart2 },
+        { name: 'Nhân sự', path: '/sale-staff', icon: Users },
+        { name: 'Quản trị hệ thống', path: '/profile-logs', icon: ClipboardList },
+      ];
+    }
+    if (role === 'NHANVIENTHUE') {
+      return [
+        { name: 'Lập đơn', path: '/rentals-pos', icon: CheckSquare },
+        { name: 'Kho máy', path: '/inventory', icon: Package },
+        { name: 'Nhập kho', path: '/rental-import', icon: Package },
+        { name: 'Khách hàng', path: '/customer-crm', icon: Users },
+        { name: 'Lịch sử', path: '/reporting', icon: BarChart2 },
+        { name: 'Nhân sự', path: '/staff-management', icon: Users },
+        { name: 'Quản trị hệ thống', path: '/profile-logs', icon: ClipboardList },
+      ];
+    }
+    return [];
+  };
+
+  const modules = getModules();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-vintage-sepia-200 bg-vintage-sepia-50/90 backdrop-blur-md">

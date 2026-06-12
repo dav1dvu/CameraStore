@@ -188,9 +188,9 @@ export const App: React.FC = () => {
             <ChevronRight size={18} />
           </button>
         )}
-        <Sidebar 
-          onNavigate={handleNavigate} 
-          currentPath={currentPath} 
+        <Sidebar
+          onNavigate={handleNavigate}
+          currentPath={currentPath}
           isHidden={isSidebarHidden}
           onToggle={toggleSidebar}
         />
@@ -227,7 +227,7 @@ export const App: React.FC = () => {
         {currentPath === '/' && (
           <Home onNavigate={handleNavigate} />
         )}
-        
+
         {currentPath === '/products' && (
           <ProductList onNavigate={handleNavigate} />
         )}

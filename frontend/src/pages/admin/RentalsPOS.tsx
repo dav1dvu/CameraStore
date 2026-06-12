@@ -342,6 +342,24 @@ export const RentalsPOS: React.FC = () => {
     }
   };
 
+  const handleCancelBooking = async () => {
+    if (!booking) return;
+    if (!window.confirm('Bạn có chắc chắn muốn hủy đơn đặt thuê này?')) return;
+    try {
+      const res = await axiosClient.post(`/bookings/${booking.id}/cancel`);
+      if (res.data.success) {
+        addToast('Hủy đơn hàng thành công', 'success');
+        setBooking({ 
+          ...booking, 
+          status: 'CANCELED' 
+        });
+        fetchAllBookings();
+      }
+    } catch (err: any) {
+      addToast(err.response?.data?.error || err.message || 'Hủy đơn hàng thất bại', 'error');
+    }
+  };
+
   // Fetch data for POS form
   const loadPOSData = async () => {
     setLoadingPOS(true);
@@ -712,10 +730,12 @@ export const RentalsPOS: React.FC = () => {
                   <p className="text-sm mt-0.5">
                     <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                       booking.status === 'PENDING' || booking.status === 'CONFIRMED' ? 'bg-amber-100 text-amber-800' :
-                      booking.status === 'CHECKED_IN' ? 'bg-muted-green-200 text-muted-green-800' : 'bg-gray-150 text-gray-700'
+                      booking.status === 'CHECKED_IN' ? 'bg-muted-green-200 text-muted-green-800' :
+                      booking.status === 'CANCELED' || booking.status === 'CANCELLED' ? 'bg-red-100 text-red-800' : 'bg-gray-150 text-gray-700'
                     }`}>
                       {booking.status === 'PENDING' || booking.status === 'CONFIRMED' ? 'Chờ giao máy' :
-                       booking.status === 'CHECKED_IN' ? 'Đang thuê' : 'Đã hoàn trả'}
+                       booking.status === 'CHECKED_IN' ? 'Đang thuê' :
+                       booking.status === 'CANCELED' || booking.status === 'CANCELLED' ? 'Đã hủy' : 'Đã hoàn trả'}
                     </span>
                   </p>
                 </div>
@@ -741,7 +761,13 @@ export const RentalsPOS: React.FC = () => {
                     />
                   </div>
 
-                  <div className="flex justify-end pt-4 border-t border-vintage-sepia-200/50">
+                  <div className="flex justify-end gap-3 pt-4 border-t border-vintage-sepia-200/50">
+                    <button
+                      onClick={handleCancelBooking}
+                      className="px-5 py-2.5 rounded bg-red-650 hover:bg-red-800 text-white font-bold cursor-pointer transition-colors"
+                    >
+                      Hủy đơn
+                    </button>
                     <button
                       onClick={() => {
                         setSelectedDeliveredBy('');
