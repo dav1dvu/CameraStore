@@ -394,10 +394,17 @@ export class ProductService {
         const diff = currentCount - targetStock;
         
         // Find equipments that are referenced by booking_equipments to avoid FOREIGN KEY violations (ON DELETE RESTRICT)
+        // Only consider active/upcoming bookings (exclude completed/cancelled bookings)
         const { data: bookedLinks, error: linkErr } = await supabaseAdmin
           .from('booking_equipments')
-          .select('equipment_id')
-          .in('equipment_id', currentEquips.map(e => e.id));
+          .select(`
+            equipment_id,
+            bookings!inner (
+              booking_status
+            )
+          `)
+          .in('equipment_id', currentEquips.map(e => e.id))
+          .not('bookings.booking_status', 'in', '("CHECKED_OUT","CANCELED","CANCELLED")');
 
         if (linkErr) throw linkErr;
 
