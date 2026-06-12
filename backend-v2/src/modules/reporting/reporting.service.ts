@@ -1,4 +1,6 @@
 import { supabaseAdmin } from '../../config/supabase.js';
+import { calculateRentalDaysWithThreshold } from '../rentals-pos/booking.service.js';
+
 
 function toHanoiDateStr(dateInput: Date | string): string {
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
@@ -675,10 +677,23 @@ export class ReportingService {
     if (type === 'booking') {
       const dbId = Number(id);
 
-      // 1. Get the booking to find customer_id
+      // 1. Get the booking to find customer_id and get equipment rate
       const { data: booking, error: getErr } = await supabaseAdmin
         .from('bookings')
-        .select('customer_id')
+        .select(`
+          customer_id,
+          start_date,
+          end_date,
+          gio_nhan,
+          gio_tra,
+          booking_equipments (
+            equipments (
+              products (
+                rent_price_per_day
+              )
+            )
+          )
+        `)
         .eq('id', dbId)
         .single();
 
@@ -709,16 +724,71 @@ export class ReportingService {
       }
 
       // 3. Update booking details
+      let finalStart = fields.startDate !== undefined ? fields.startDate : booking.start_date;
+      let finalEnd = fields.endDate !== undefined ? fields.endDate : booking.end_date;
+      const finalGioNhan = fields.gioNhan !== undefined ? fields.gioNhan : booking.gio_nhan;
+      const finalGioTra = fields.gioTra !== undefined ? fields.gioTra : booking.gio_tra;
+
+      // Normalize both dates by extracting YYYY-MM-DD and appending T00:00:00.000Z to prevent check_dates constraint violations due to timezone/time mismatches
+      const startStr = finalStart.substring(0, 10);
+      const endStr = finalEnd.substring(0, 10);
+      finalStart = `${startStr}T00:00:00.000Z`;
+      finalEnd = `${endStr}T00:00:00.000Z`;
+
+      if (startStr > endStr) {
+        throw new Error('Ngày trả không được trước ngày giao máy');
+      }
+
+      if (startStr === endStr && finalGioNhan && finalGioTra) {
+        const parseTimeToMinutes = (timeStr: string): number | null => {
+          if (!timeStr || !timeStr.includes(':')) return null;
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          if (isNaN(hours) || isNaN(minutes)) return null;
+          return hours * 60 + minutes;
+        };
+
+        const nhanMin = parseTimeToMinutes(finalGioNhan);
+        const traMin = parseTimeToMinutes(finalGioTra);
+
+        if (nhanMin !== null && traMin !== null && traMin <= nhanMin) {
+          throw new Error('Nếu giao và trả trong cùng một ngày, giờ trả phải muộn hơn giờ giao');
+        }
+      }
+
       const bookingUpdates: any = {};
-      if (fields.startDate !== undefined) bookingUpdates.start_date = fields.startDate;
-      if (fields.endDate !== undefined) bookingUpdates.end_date = fields.endDate;
-      if (fields.revenue !== undefined) bookingUpdates.total_rent_fee = fields.revenue;
+      if (fields.startDate !== undefined) bookingUpdates.start_date = finalStart;
+      if (fields.endDate !== undefined) bookingUpdates.end_date = finalEnd;
       if (fields.status !== undefined) bookingUpdates.booking_status = fields.status;
       if (fields.deliveredBy !== undefined) bookingUpdates.delivered_by = fields.deliveredBy ? Number(fields.deliveredBy) : null;
       if (fields.receivedBy !== undefined) bookingUpdates.received_by = fields.receivedBy ? Number(fields.receivedBy) : null;
       if (fields.notes !== undefined) bookingUpdates.notes = fields.notes;
       if (fields.gioNhan !== undefined) bookingUpdates.gio_nhan = fields.gioNhan;
       if (fields.gioTra !== undefined) bookingUpdates.gio_tra = fields.gioTra;
+
+      // Recalculate revenue based on date/hour changes
+      const pricePerDay = Number((booking as any)?.booking_equipments?.[0]?.equipments?.products?.rent_price_per_day || 0);
+      const start = new Date(finalStart);
+      const end = new Date(finalEnd);
+      const days = calculateRentalDaysWithThreshold(start, end);
+      const baseFee = pricePerDay * days;
+
+      let extraCharge = 0;
+      if (finalGioTra && typeof finalGioTra === 'string' && finalGioTra.includes(':')) {
+        const [hours, minutes] = finalGioTra.split(':').map(Number);
+        const minutesTotal = hours * 60 + minutes;
+
+        const limit22 = 22 * 60;
+        const limit22_30 = 22 * 60 + 30;
+
+        if (minutesTotal > limit22 && minutesTotal <= limit22_30) {
+          extraCharge = 0.5 * pricePerDay;
+        } else if (minutesTotal > limit22_30) {
+          extraCharge = 1.0 * pricePerDay;
+        }
+      }
+
+      const finalRevenue = baseFee + extraCharge;
+      bookingUpdates.total_rent_fee = finalRevenue;
 
       const { data, error } = await supabaseAdmin
         .from('bookings')

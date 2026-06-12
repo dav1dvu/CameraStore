@@ -186,6 +186,33 @@ export const Reporting: React.FC = () => {
       return;
     }
 
+    if (item.type === 'RENTAL') {
+      const startStr = editFormData.startDate.substring(0, 10);
+      const endStr = editFormData.endDate.substring(0, 10);
+
+      if (startStr > endStr) {
+        addToast('Ngày trả không được trước ngày giao máy', 'error');
+        return;
+      }
+
+      if (startStr === endStr && editFormData.gioNhan && editFormData.gioTra) {
+        const parseTimeToMinutes = (timeStr: string): number | null => {
+          if (!timeStr || !timeStr.includes(':')) return null;
+          const [hours, minutes] = timeStr.split(':').map(Number);
+          if (isNaN(hours) || isNaN(minutes)) return null;
+          return hours * 60 + minutes;
+        };
+
+        const nhanMin = parseTimeToMinutes(editFormData.gioNhan);
+        const traMin = parseTimeToMinutes(editFormData.gioTra);
+
+        if (nhanMin !== null && traMin !== null && traMin <= nhanMin) {
+          addToast('Nếu giao và trả trong cùng một ngày, giờ trả phải muộn hơn giờ giao', 'error');
+          return;
+        }
+      }
+    }
+
     const type = item.type === 'RENTAL' ? 'booking' : 'order';
     try {
       setLoading(true);
@@ -386,7 +413,7 @@ export const Reporting: React.FC = () => {
             <thead>
               <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider">
                 <th className="p-3 w-14">Hình thức</th>
-                <th className="p-3 w-20">Ngày bắt đầu</th>
+                <th className="p-3 w-20">Ngày giao</th>
                 <th className="p-3 w-14">Giờ giao</th>
                 <th className="p-3 w-20">Ngày trả</th>
                 <th className="p-3 w-14">Giờ trả</th>
@@ -417,7 +444,7 @@ export const Reporting: React.FC = () => {
                       </span>
                     </td>
 
-                    {/* Ngày bắt đầu */}
+                    {/* Ngày giao */}
                     <td className="p-3 font-mono">
                       {isEditing ? (
                         <input
