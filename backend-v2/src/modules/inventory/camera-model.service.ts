@@ -185,13 +185,13 @@ export class CameraModelService {
       const status = booking.booking_status;
       if (status === 'CANCELED' || status === 'CANCELLED' || status === 'CHECKED_OUT') return;
 
-      const bStart = new Date(booking.start_date);
-      const bEnd = new Date(booking.end_date);
-      const qStart = new Date(startDate);
-      const qEnd = new Date(endDate);
+      const bStartStr = booking.start_date.substring(0, 10);
+      const bEndStr = booking.end_date.substring(0, 10);
+      const qStartStr = startDate.substring(0, 10);
+      const qEndStr = endDate.substring(0, 10);
 
-      // Check overlap
-      if (bStart < qEnd && bEnd > qStart) {
+      // Check overlap: booking start <= query end AND booking end >= query start
+      if (bStartStr <= qEndStr && bEndStr >= qStartStr) {
         bookedEquipmentIds.add(link.equipment_id);
       }
     });
