@@ -410,9 +410,9 @@ export class ProductService {
 
         const bookedIds = new Set((bookedLinks || []).map(b => b.equipment_id));
 
-        // Find equipments that are not rented and NOT referenced by any bookings
+        // Find equipments that are NOT referenced by any active/upcoming bookings
         const availableEquips = (currentEquips || []).filter(
-          e => e.status !== 'RENTED' && !bookedIds.has(e.id)
+          e => !bookedIds.has(e.id)
         );
         const idsToDelete = availableEquips.slice(0, diff).map(e => e.id);
         
