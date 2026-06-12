@@ -324,7 +324,16 @@ export class ProductService {
 
   static async updateProduct(id: string | number, data: any) {
     const { name, brand, salePrice, rentalPricePerDay, totalStock, categoryId } = data;
-    
+
+    // 1. Fetch current product to check old name/brand/stock
+    const { data: oldProduct, error: fetchErr } = await supabaseAdmin
+      .from('products')
+      .select('id, name, brand, stock_quantity')
+      .eq('id', id)
+      .single();
+
+    if (fetchErr) throw fetchErr;
+
     const mappedUpdates: Record<string, any> = {};
     if (name !== undefined) mappedUpdates.name = name;
     if (brand !== undefined) mappedUpdates.brand = brand;
@@ -333,6 +342,7 @@ export class ProductService {
     if (totalStock !== undefined) mappedUpdates.stock_quantity = totalStock;
     if (categoryId !== undefined) mappedUpdates.categories_id = Number(categoryId);
 
+    // 2. Perform the update
     const { data: product, error: prodError } = await supabaseAdmin
       .from('products')
       .update(mappedUpdates)
@@ -341,6 +351,70 @@ export class ProductService {
       .single();
       
     if (prodError) throw prodError;
+
+    // 3. Sync equipments if totalStock is changed
+    if (totalStock !== undefined && totalStock !== oldProduct.stock_quantity) {
+      // Get all equipments for this product
+      const { data: currentEquips, error: eqErr } = await supabaseAdmin
+        .from('equipments')
+        .select('id, status')
+        .eq('product_id', id);
+
+      if (eqErr) throw eqErr;
+
+      const currentCount = currentEquips ? currentEquips.length : 0;
+      
+      if (totalStock > currentCount) {
+        // Add new equipments
+        const diff = totalStock - currentCount;
+        const equipsToInsert = [];
+        const finalName = name || oldProduct.name;
+        const finalBrand = brand || oldProduct.brand;
+        const cleanName = finalName.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const cleanBrand = finalBrand.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        
+        for (let i = 0; i < diff; i++) {
+          const serial = `${cleanBrand}-${cleanName}-${Date.now()}-${i + 1}`;
+          equipsToInsert.push({
+            product_id: id,
+            serial_number: serial,
+            status: 'AVAILABLE'
+          });
+        }
+        const { error: insertErr } = await supabaseAdmin
+          .from('equipments')
+          .insert(equipsToInsert);
+        if (insertErr) throw insertErr;
+      } else if (totalStock < currentCount) {
+        // Remove surplus equipments
+        const diff = currentCount - totalStock;
+        
+        // Find equipments that are not rented (AVAILABLE, MAINTENANCE, DAMAGED) to delete first
+        const availableEquips = (currentEquips || []).filter(e => e.status !== 'RENTED');
+        const idsToDelete = availableEquips.slice(0, diff).map(e => e.id);
+        
+        if (idsToDelete.length > 0) {
+          const { error: deleteErr } = await supabaseAdmin
+            .from('equipments')
+            .delete()
+            .in('id', idsToDelete);
+          if (deleteErr) throw deleteErr;
+        }
+
+        // Re-count equipments to update stock_quantity to the actual remaining count
+        const { count: actualRemaining, error: countErr } = await supabaseAdmin
+          .from('equipments')
+          .select('id', { count: 'exact', head: true })
+          .eq('product_id', id);
+
+        if (!countErr && actualRemaining !== null && actualRemaining !== totalStock) {
+          await supabaseAdmin
+            .from('products')
+            .update({ stock_quantity: actualRemaining })
+            .eq('id', id);
+        }
+      }
+    }
 
     return product;
   }
