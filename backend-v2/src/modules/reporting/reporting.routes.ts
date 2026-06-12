@@ -17,4 +17,9 @@ router.get('/consolidated-dashboard', ReportingController.getConsolidatedDashboa
 router.put('/order-history/:type/:id', ReportingController.updateOrderHistory);
 router.delete('/order-history/:type/:id', ReportingController.deleteOrderHistory);
 
+router.get('/film-developments', ReportingController.getFilmDevelopments);
+router.post('/film-developments', ReportingController.createFilmDevelopment);
+router.put('/film-developments/:id', ReportingController.updateFilmDevelopment);
+router.delete('/film-developments/:id', ReportingController.deleteFilmDevelopment);
+
 export default router;

@@ -1010,4 +1010,85 @@ export class ReportingService {
       }
     };
   }
+
+  static async getFilmDevelopments() {
+    const { data, error } = await supabaseAdmin
+      .from('film_developments')
+      .select('*')
+      .order('ngay_trang', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  static async createFilmDevelopment(payload: {
+    ngayTrang: string;
+    tenKhach?: string | null;
+    sdtKhach?: string | null;
+    cuonFilm: string;
+    lab?: string | null;
+    ngayTra?: string | null;
+  }) {
+    const { ngayTrang, tenKhach, sdtKhach, cuonFilm, lab, ngayTra } = payload;
+    if (!ngayTrang || !cuonFilm) {
+      throw new Error('Ngày tráng và Cuộn film là bắt buộc');
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('film_developments')
+      .insert({
+        ngay_trang: ngayTrang,
+        ten_khach: tenKhach || null,
+        sdt_khach: sdtKhach || null,
+        cuon_film: cuonFilm,
+        lab: lab || null,
+        ngay_tra: ngayTra || null
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async updateFilmDevelopment(id: number, payload: {
+    ngayTrang?: string;
+    tenKhach?: string | null;
+    sdtKhach?: string | null;
+    cuonFilm?: string;
+    lab?: string | null;
+    ngayTra?: string | null;
+  }) {
+    const { ngayTrang, tenKhach, sdtKhach, cuonFilm, lab, ngayTra } = payload;
+
+    const updates: any = {};
+    if (ngayTrang !== undefined) updates.ngay_trang = ngayTrang;
+    if (tenKhach !== undefined) updates.ten_khach = tenKhach || null;
+    if (sdtKhach !== undefined) updates.sdt_khach = sdtKhach || null;
+    if (cuonFilm !== undefined) updates.cuon_film = cuonFilm;
+    if (lab !== undefined) updates.lab = lab || null;
+    if (ngayTra !== undefined) updates.ngay_tra = ngayTra || null;
+
+    const { data, error } = await supabaseAdmin
+      .from('film_developments')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async deleteFilmDevelopment(id: number) {
+    const { data, error } = await supabaseAdmin
+      .from('film_developments')
+      .delete()
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
 }

@@ -3,7 +3,7 @@ import { useAuthStore } from '../../store/authStore.js';
 import { 
   Camera, LogOut, ShieldAlert, Menu, X,
   Users, ClipboardList, Package, 
-  BarChart2, CheckSquare
+  BarChart2, CheckSquare, Film
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -28,7 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPath }) => {
     }
     
     if (role === 'NHANVIENTHUE') {
-      const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/muon-expenses', '/staff-management', '/profile-logs'].includes(path);
+      const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/film-development', '/muon-expenses', '/staff-management', '/profile-logs'].includes(path);
       return isMuonPath;
     }
     
@@ -42,6 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPath }) => {
         { name: 'Kho máy (Thuê)', path: '/inventory', icon: Package },
         { name: 'Khách hàng (Thuê)', path: '/customer-crm', icon: Users },
         { name: 'Lịch sử (Thuê)', path: '/reporting', icon: BarChart2 },
+        { name: 'Tráng film (Thuê)', path: '/film-development', icon: Film },
         { name: 'Nhân sự (Thuê)', path: '/staff-management', icon: Users },
         { name: 'Lập đơn (Bán)', path: '/sale-order-create', icon: CheckSquare },
         { name: 'Kho máy (Bán)', path: '/sale-inventory', icon: Package },
@@ -70,6 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPath }) => {
         { name: 'Nhập kho', path: '/rental-import', icon: Package },
         { name: 'Khách hàng', path: '/customer-crm', icon: Users },
         { name: 'Lịch sử', path: '/reporting', icon: BarChart2 },
+        { name: 'Tráng film', path: '/film-development', icon: Film },
         { name: 'Nhân sự', path: '/staff-management', icon: Users },
         { name: 'Quản trị hệ thống', path: '/profile-logs', icon: ClipboardList },
       ];

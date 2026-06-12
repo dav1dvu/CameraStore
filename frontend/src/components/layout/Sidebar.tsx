@@ -4,7 +4,7 @@ import {
   Users, ClipboardList, Package, ShieldAlert,
   BarChart2, CheckSquare, UserCheck, LogOut,
   Camera, Tag, ChevronDown, ChevronRight, ChevronLeft, CreditCard,
-  ShoppingCart, ArrowDownToLine
+  ShoppingCart, ArrowDownToLine, Film
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -17,7 +17,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHidden, onToggle }) => {
   const { user, logout } = useAuthStore();
 
-  const isMuonPath = ['/rentals-pos', '/inventory', '/customer-crm', '/reporting', '/muon-expenses', '/staff-management', '/rental-import'].includes(currentPath);
+  const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/film-development', '/muon-expenses', '/staff-management'].includes(currentPath);
   const isBanPath = ['/sale-order-create', '/sale-order-history', '/sale-inventory', '/sale-import', '/sale-expenses', '/sale-staff', '/sale-customers'].includes(currentPath);
 
   const [muonExpanded, setMuonExpanded] = React.useState(true);
@@ -40,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHid
     }
     
     if (role === 'NHANVIENTHUE') {
-      const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/muon-expenses', '/staff-management', '/profile-logs'].includes(path);
+      const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/film-development', '/muon-expenses', '/staff-management', '/profile-logs'].includes(path);
       return isMuonPath;
     }
     
@@ -53,6 +53,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHid
     { name: 'Nhập kho', path: '/rental-import', icon: ArrowDownToLine },
     { name: 'Khách hàng', path: '/customer-crm', icon: Users },
     { name: 'Lịch sử', path: '/reporting', icon: BarChart2 },
+    { name: 'Tráng film', path: '/film-development', icon: Film },
     { name: 'Chi phí', path: '/muon-expenses', icon: CreditCard },
     { name: 'Nhân sự', path: '/staff-management', icon: UserCheck },
   ];

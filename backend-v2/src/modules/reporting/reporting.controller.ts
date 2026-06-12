@@ -178,4 +178,64 @@ export class ReportingController {
       next(error);
     }
   }
+
+  static async getFilmDevelopments(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await ReportingService.getFilmDevelopments();
+      res.status(200).json({
+        success: true,
+        data: result,
+        error: null
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async createFilmDevelopment(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await ReportingService.createFilmDevelopment(req.body);
+      res.status(201).json({
+        success: true,
+        data: result,
+        error: null
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async updateFilmDevelopment(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = Number(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ success: false, message: 'ID không hợp lệ' });
+      }
+      const result = await ReportingService.updateFilmDevelopment(id, req.body);
+      res.status(200).json({
+        success: true,
+        data: result,
+        error: null
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  static async deleteFilmDevelopment(req: Request, res: Response, next: NextFunction) {
+    try {
+      const id = Number(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ success: false, message: 'ID không hợp lệ' });
+      }
+      const result = await ReportingService.deleteFilmDevelopment(id);
+      res.status(200).json({
+        success: true,
+        data: result,
+        error: null
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }

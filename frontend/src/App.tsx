@@ -23,6 +23,7 @@ import { CustomerCRM } from './pages/admin/CustomerCRM';
 import { RentalsPOS } from './pages/admin/RentalsPOS';
 import { StaffManagement } from './pages/admin/StaffManagement';
 import { Reporting } from './pages/admin/Reporting';
+import { FilmDevelopment } from './pages/admin/FilmDevelopment';
 import { Expenses } from './pages/admin/Expenses';
 import { SaleOrderCreate } from './pages/admin/banmayfilm/SaleOrderCreate';
 import { SaleOrderHistory } from './pages/admin/banmayfilm/SaleOrderHistory';
@@ -91,7 +92,7 @@ export const App: React.FC = () => {
       }
 
       // MUONMAYCHUT routes
-      const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/muon-expenses', '/staff-management'].includes(path);
+      const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/film-development', '/muon-expenses', '/staff-management'].includes(path);
       if (isMuonPath && role !== 'NHANVIENTHUE') {
         addToast('Từ chối truy cập: Quyền hạn không hợp lệ!', 'error');
         setCurrentPath(getDefaultPath());
@@ -163,6 +164,7 @@ export const App: React.FC = () => {
     '/inventory',
     '/customer-crm',
     '/reporting',
+    '/film-development',
     '/staff-management',
     '/profile-logs',
     '/muon-expenses',
@@ -203,6 +205,7 @@ export const App: React.FC = () => {
             {currentPath === '/rentals-pos' && <RentalsPOS />}
             {currentPath === '/staff-management' && <StaffManagement />}
             {currentPath === '/reporting' && <Reporting />}
+            {currentPath === '/film-development' && <FilmDevelopment />}
             {currentPath === '/muon-expenses' && <Expenses businessType="MUONMAYCHUT" />}
             {currentPath === '/sale-order-create' && <SaleOrderCreate />}
             {currentPath === '/sale-order-history' && <SaleOrderHistory />}
