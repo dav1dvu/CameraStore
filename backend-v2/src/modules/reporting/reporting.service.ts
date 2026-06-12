@@ -390,7 +390,19 @@ export class ReportingService {
         )
       `);
 
-    // 2. Fetch orders without order_items join
+    // 2. Fetch employees to map delivered_by/received_by (must be before conditional blocks)
+    const { data: employees } = await supabaseAdmin
+      .from('employees')
+      .select('id, full_name, staff_code');
+    const empMap = new Map();
+    if (employees) {
+      employees.forEach((emp: any) => {
+        empMap.set(emp.id, emp);
+      });
+    }
+
+    // 3. Initialize history array and order data
+    const history: any[] = [];
     let orders: any[] = [];
     let orderItems: any[] = [];
 
@@ -516,21 +528,7 @@ export class ReportingService {
       orderItemsMap[oid].push(item);
     });
 
-    // 3. Fetch employees to map delivered_by/received_by
-    const { data: employees } = await supabaseAdmin
-      .from('employees')
-      .select('id, full_name, staff_code');
-    const empMap = new Map();
-    if (employees) {
-      employees.forEach((emp: any) => {
-        empMap.set(emp.id, emp);
-      });
-    }
-
-    // 4. Combine and format
-    const history: any[] = [];
-
-    // We populated history in the conditional blocks above instead of here
+    // 4. Combine orders into history
 
     (orders || []).forEach((o: any) => {
       const oItems = orderItemsMap[o.order_id] || [];

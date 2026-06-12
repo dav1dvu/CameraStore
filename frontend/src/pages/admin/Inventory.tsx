@@ -281,7 +281,7 @@ export const Inventory: React.FC = () => {
               <Search className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
             </div>
 
-            {currentUser?.role === 'ADMIN' && (
+            {(currentUser?.role === 'ADMIN' || currentUser?.role === 'NHANVIENTHUE') && (
               <button
                 onClick={() => {
                   setEditingProduct(null);
@@ -318,7 +318,7 @@ export const Inventory: React.FC = () => {
                     <th className="p-4">Giá thuê / ngày</th>
                     <th className="p-4 text-center">Tồn kho</th>
                     <th className="p-4">Mô tả</th>
-                    {currentUser?.role === 'ADMIN' && <th className="p-4 text-center w-28">Hành động</th>}
+                    {(currentUser?.role === 'ADMIN' || currentUser?.role === 'NHANVIENTHUE') && <th className="p-4 text-center w-28">Hành động</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-vintage-sepia-200">
@@ -339,7 +339,7 @@ export const Inventory: React.FC = () => {
                       <td className="p-4 font-bold text-vintage-gold">{p.rentalPricePerDay ? formatVND(p.rentalPricePerDay) : '0 ₫'}</td>
                       <td className="p-4 text-center font-bold">{p.totalStock} sản phẩm</td>
                       <td className="p-4 text-warm-gray-700 max-w-xs truncate">{p.description || 'Chưa có mô tả.'}</td>
-                      {currentUser?.role === 'ADMIN' && (
+                      {(currentUser?.role === 'ADMIN' || currentUser?.role === 'NHANVIENTHUE') && (
                         <td className="p-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button
@@ -382,7 +382,7 @@ export const Inventory: React.FC = () => {
             <div className="text-sm font-bold text-vintage-sepia-900">
               Danh sách danh mục sản phẩm ({categories.length})
             </div>
-            {currentUser?.role === 'ADMIN' && (
+            {(currentUser?.role === 'ADMIN' || currentUser?.role === 'NHANVIENTHUE') && (
               <button
                 onClick={handleCategoryCreateClick}
                 className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-vintage-sepia-900 hover:bg-vintage-gold text-vintage-sepia-50 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
@@ -403,7 +403,7 @@ export const Inventory: React.FC = () => {
                     <th className="p-4 w-1/4">Tên danh mục</th>
                     <th className="p-4 w-1/4">Slug</th>
                     <th className="p-4">Mô tả</th>
-                    {currentUser?.role === 'ADMIN' && <th className="p-4 text-center w-28">Hành động</th>}
+                    {(currentUser?.role === 'ADMIN' || currentUser?.role === 'NHANVIENTHUE') && <th className="p-4 text-center w-28">Hành động</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-vintage-sepia-200 font-medium">
@@ -412,7 +412,7 @@ export const Inventory: React.FC = () => {
                       <td className="p-4 font-bold text-vintage-sepia-900">{c.name}</td>
                       <td className="p-4 font-mono">{c.slug}</td>
                       <td className="p-4 text-warm-gray-750">{c.description || '-'}</td>
-                      {currentUser?.role === 'ADMIN' && (
+                      {(currentUser?.role === 'ADMIN' || currentUser?.role === 'NHANVIENTHUE') && (
                         <td className="p-4 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <button

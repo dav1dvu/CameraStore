@@ -383,7 +383,16 @@ export const RentalsPOS: React.FC = () => {
       }
       const modelsRes = await axiosClient.get('/camera-models');
       if (modelsRes.data.success) {
-        setCameraModels(modelsRes.data.data || []);
+        // Deduplicate camera models by id to prevent extra dropdown entries
+        const rawModels = modelsRes.data.data || [];
+        const seenIds = new Set<string>();
+        const uniqueModels = rawModels.filter((m: any) => {
+          const id = String(m.id);
+          if (seenIds.has(id)) return false;
+          seenIds.add(id);
+          return true;
+        });
+        setCameraModels(uniqueModels);
       }
       const productsRes = await axiosClient.get('/products?limit=1000');
       if (productsRes.data.success) {
@@ -764,7 +773,7 @@ export const RentalsPOS: React.FC = () => {
                   <div className="flex justify-end gap-3 pt-4 border-t border-vintage-sepia-200/50">
                     <button
                       onClick={handleCancelBooking}
-                      className="px-5 py-2.5 rounded bg-red-650 hover:bg-red-800 text-white font-bold cursor-pointer transition-colors"
+                      className="px-5 py-2.5 rounded bg-red-600 hover:bg-red-700 text-white font-bold cursor-pointer transition-colors"
                     >
                       Hủy đơn
                     </button>
