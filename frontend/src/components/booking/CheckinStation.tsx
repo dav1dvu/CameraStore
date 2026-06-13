@@ -361,6 +361,12 @@ export const CheckinStation: React.FC = () => {
               </p>
             </div>
             <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Đặt cọc</span>
+              <p className="text-sm font-medium text-warm-gray-900 mt-0.5">
+                {booking.deposit_amount ? (isNaN(Number(booking.deposit_amount)) ? booking.deposit_amount : formatVND(Number(booking.deposit_amount))) : 'Không có'}
+              </p>
+            </div>
+            <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Trạng thái đơn</span>
               <p className="text-sm">
                 <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold ${

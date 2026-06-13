@@ -200,7 +200,7 @@ export const RentalsPOS: React.FC = () => {
     cameraModelId: '',
     startDate: '',
     endDate: '',
-    depositAmount: '2000000' as string
+    depositAmount: '' as string
   });
 
   // Hour tracking state
@@ -757,6 +757,12 @@ export const RentalsPOS: React.FC = () => {
                   </p>
                 </div>
                 <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Đặt cọc</span>
+                  <p className="text-xs font-semibold text-warm-gray-950 mt-0.5">
+                    {booking.deposit_amount ? (isNaN(Number(booking.deposit_amount)) ? booking.deposit_amount : formatVND(Number(booking.deposit_amount))) : 'Không có'}
+                  </p>
+                </div>
+                <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Trạng thái</span>
                   <p className="text-sm mt-0.5">
                     <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
@@ -1145,7 +1151,6 @@ export const RentalsPOS: React.FC = () => {
                   />
                   <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                 </div>
-                <p className="text-[10px] text-warm-gray-700 mt-1 italic">Thông thường bằng 50%-100% giá trị thẩm định của thiết bị máy ảnh cơ. (Có thể để trống hoặc nhập văn bản tự do, ví dụ: Giữ CCCD)</p>
               </div>
 
               <div className="pt-4 border-t border-vintage-sepia-200 flex justify-end">

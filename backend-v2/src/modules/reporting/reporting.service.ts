@@ -686,6 +686,7 @@ export class ReportingService {
           end_date,
           gio_nhan,
           gio_tra,
+          total_rent_fee,
           booking_equipments (
             equipments (
               products (
@@ -765,30 +766,36 @@ export class ReportingService {
       if (fields.gioNhan !== undefined) bookingUpdates.gio_nhan = fields.gioNhan;
       if (fields.gioTra !== undefined) bookingUpdates.gio_tra = fields.gioTra;
 
-      // Recalculate revenue based on date/hour changes
-      const pricePerDay = Number((booking as any)?.booking_equipments?.[0]?.equipments?.products?.rent_price_per_day || 0);
-      const start = new Date(finalStart);
-      const end = new Date(finalEnd);
-      const days = calculateRentalDaysWithThreshold(start, end);
-      const baseFee = pricePerDay * days;
+      // Check if user manually updated the revenue
+      const currentRevenue = Number(booking?.total_rent_fee || 0);
+      if (fields.revenue !== undefined && Number(fields.revenue) !== currentRevenue) {
+        bookingUpdates.total_rent_fee = Number(fields.revenue);
+      } else {
+        // Recalculate revenue based on date/hour changes
+        const pricePerDay = Number((booking as any)?.booking_equipments?.[0]?.equipments?.products?.rent_price_per_day || 0);
+        const start = new Date(finalStart);
+        const end = new Date(finalEnd);
+        const days = calculateRentalDaysWithThreshold(start, end);
+        const baseFee = pricePerDay * days;
 
-      let extraCharge = 0;
-      if (finalGioTra && typeof finalGioTra === 'string' && finalGioTra.includes(':')) {
-        const [hours, minutes] = finalGioTra.split(':').map(Number);
-        const minutesTotal = hours * 60 + minutes;
+        let extraCharge = 0;
+        if (finalGioTra && typeof finalGioTra === 'string' && finalGioTra.includes(':')) {
+          const [hours, minutes] = finalGioTra.split(':').map(Number);
+          const minutesTotal = hours * 60 + minutes;
 
-        const limit22 = 22 * 60;
-        const limit22_30 = 22 * 60 + 30;
+          const limit22 = 22 * 60;
+          const limit22_30 = 22 * 60 + 30;
 
-        if (minutesTotal > limit22 && minutesTotal <= limit22_30) {
-          extraCharge = 0.5 * pricePerDay;
-        } else if (minutesTotal > limit22_30) {
-          extraCharge = 1.0 * pricePerDay;
+          if (minutesTotal > limit22 && minutesTotal <= limit22_30) {
+            extraCharge = 0.5 * pricePerDay;
+          } else if (minutesTotal > limit22_30) {
+            extraCharge = 1.0 * pricePerDay;
+          }
         }
-      }
 
-      const finalRevenue = baseFee + extraCharge;
-      bookingUpdates.total_rent_fee = finalRevenue;
+        const finalRevenue = baseFee + extraCharge;
+        bookingUpdates.total_rent_fee = finalRevenue;
+      }
 
       const { data, error } = await supabaseAdmin
         .from('bookings')
