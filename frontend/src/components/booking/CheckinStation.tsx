@@ -15,6 +15,8 @@ interface BookingDetail {
   equipment: { serial_number: string; products: { name: string; brand: string } };
   accessories_out?: string[];
   accessories_in?: string[];
+  gio_nhan?: string;
+  gio_tra?: string;
 }
 
 export const CheckinStation: React.FC = () => {
@@ -90,7 +92,63 @@ export const CheckinStation: React.FC = () => {
 
   const handleSelectBooking = (id: string) => {
     setBookingId(id);
+    setIsEditingDates(false);
     lookupBookingById(id);
+  };
+
+  // Edit leasing duration states
+  const [isEditingDates, setIsEditingDates] = useState(false);
+  const [editStartDate, setEditStartDate] = useState('');
+  const [editEndDate, setEditEndDate] = useState('');
+  const [editGioNhan, setEditGioNhan] = useState('');
+  const [editGioTra, setEditGioTra] = useState('');
+  const [updatingDates, setUpdatingDates] = useState(false);
+
+  const handleStartEditDates = () => {
+    if (!booking) return;
+    setEditStartDate(booking.start_date.substring(0, 10));
+    setEditEndDate(booking.end_date.substring(0, 10));
+    setEditGioNhan(booking.gio_nhan || toLocalTimeStr(booking.start_date));
+    setEditGioTra(booking.gio_tra || toLocalTimeStr(booking.end_date));
+    setIsEditingDates(true);
+  };
+
+  const handleSaveDates = async () => {
+    if (!booking) return;
+    if (!editStartDate || !editEndDate) {
+      addToast('Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc', 'error');
+      return;
+    }
+    if (editStartDate > editEndDate) {
+      addToast('Ngày kết thúc không được trước ngày bắt đầu', 'error');
+      return;
+    }
+
+    setUpdatingDates(true);
+    try {
+      const res = await axiosClient.put(`/reports/order-history/booking/${booking.id}`, {
+        startDate: editStartDate,
+        endDate: editEndDate,
+        gioNhan: editGioNhan,
+        gioTra: editGioTra
+      });
+
+      if (res.data.success) {
+        addToast('Cập nhật thời hạn thuê thành công', 'success');
+        setIsEditingDates(false);
+        // Refresh details
+        const detailsRes = await axiosClient.get(`/bookings/${booking.id}`);
+        if (detailsRes.data.success) {
+          setBooking(detailsRes.data.data);
+        }
+        // Refresh lists
+        fetchAllBookings();
+      }
+    } catch (err: any) {
+      addToast(err.response?.data?.error || err.message || 'Lỗi khi cập nhật thời hạn thuê', 'error');
+    } finally {
+      setUpdatingDates(false);
+    }
   };
 
   const handleToggleAccessory = (acc: string) => {
@@ -306,7 +364,7 @@ export const CheckinStation: React.FC = () => {
                   </div>
                   <div className="px-3 text-center border-x border-vintage-sepia-200/40">
                     <p className="text-base font-extrabold text-vintage-sepia-900 font-mono">
-                      {toLocalTimeStr(b.start_date)}
+                      {b.gio_nhan || toLocalTimeStr(b.start_date)}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0 pl-2">
@@ -351,7 +409,7 @@ export const CheckinStation: React.FC = () => {
                     </div>
                     <div className="px-3 text-center border-x border-vintage-sepia-200/40">
                       <p className="text-base font-extrabold text-vintage-sepia-900 font-mono">
-                        {toLocalTimeStr(b.end_date)}
+                        {b.gio_tra || toLocalTimeStr(b.end_date)}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0 pl-2">
@@ -386,11 +444,79 @@ export const CheckinStation: React.FC = () => {
               </p>
               <p className="text-xs text-warm-gray-700 font-mono">Số S/N: {booking.equipment.serial_number}</p>
             </div>
-            <div>
+            <div className="col-span-2 border-t border-vintage-sepia-200 pt-3">
               <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Thời hạn thuê</span>
-              <p className="text-sm font-medium text-warm-gray-900">
-                Từ {booking.start_date} đến {booking.end_date}
-              </p>
+              {isEditingDates ? (
+                <div className="space-y-3 mt-1.5 bg-vintage-sepia-100/30 p-3 rounded-lg border border-vintage-sepia-200/60">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                    <div>
+                      <label className="block text-[10px] uppercase text-warm-gray-700 font-bold mb-1">Ngày &amp; Giờ bắt đầu</label>
+                      <div className="flex gap-1.5">
+                        <input
+                          type="date"
+                          value={editStartDate}
+                          onChange={e => setEditStartDate(e.target.value)}
+                          className="px-2.5 py-1.5 border border-vintage-sepia-200 bg-white rounded-lg text-xs w-full focus:outline-none focus:border-vintage-gold"
+                        />
+                        <input
+                          type="time"
+                          value={editGioNhan}
+                          onChange={e => setEditGioNhan(e.target.value)}
+                          className="px-2.5 py-1.5 border border-vintage-sepia-200 bg-white rounded-lg text-xs focus:outline-none focus:border-vintage-gold"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase text-warm-gray-700 font-bold mb-1">Ngày &amp; Giờ kết thúc</label>
+                      <div className="flex gap-1.5">
+                        <input
+                          type="date"
+                          value={editEndDate}
+                          onChange={e => setEditEndDate(e.target.value)}
+                          className="px-2.5 py-1.5 border border-vintage-sepia-200 bg-white rounded-lg text-xs w-full focus:outline-none focus:border-vintage-gold"
+                        />
+                        <input
+                          type="time"
+                          value={editGioTra}
+                          onChange={e => setEditGioTra(e.target.value)}
+                          className="px-2.5 py-1.5 border border-vintage-sepia-200 bg-white rounded-lg text-xs focus:outline-none focus:border-vintage-gold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 justify-end pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingDates(false)}
+                      disabled={updatingDates}
+                      className="px-3 py-1.5 rounded-lg border border-vintage-sepia-200 hover:bg-vintage-sepia-100 text-xs font-semibold text-warm-gray-800 transition-colors cursor-pointer"
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSaveDates}
+                      disabled={updatingDates}
+                      className="px-3.5 py-1.5 rounded-lg bg-vintage-gold text-vintage-sepia-900 text-xs font-bold hover:bg-vintage-gold-light transition-colors cursor-pointer"
+                    >
+                      {updatingDates ? 'Đang lưu...' : 'Lưu'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between mt-1 bg-vintage-sepia-100/10 p-2 rounded border border-vintage-sepia-200/40">
+                  <p className="text-xs font-semibold text-warm-gray-950 font-mono">
+                    Từ {toLocalDateStr(booking.start_date)} ({booking.gio_nhan || toLocalTimeStr(booking.start_date)}) đến {toLocalDateStr(booking.end_date)} ({booking.gio_tra || toLocalTimeStr(booking.end_date)})
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleStartEditDates}
+                    className="px-2.5 py-1 text-[10px] font-bold text-vintage-gold hover:text-vintage-sepia-950 border border-vintage-gold/50 rounded hover:bg-vintage-gold/15 transition-all cursor-pointer"
+                  >
+                    Chỉnh sửa
+                  </button>
+                </div>
+              )}
             </div>
             {booking.status !== 'PENDING' && booking.status !== 'CONFIRMED' && (
               <div>
