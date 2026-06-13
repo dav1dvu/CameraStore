@@ -13,6 +13,7 @@ interface FilmDevRecord {
   cuon_film: string;
   lab: string | null;
   ngay_tra: string | null; // YYYY-MM-DD
+  ghi_chu: string | null;
   created_at: string;
 }
 
@@ -30,7 +31,8 @@ export const FilmDevelopment: React.FC = () => {
     sdtKhach: '',
     cuonFilm: '',
     lab: '',
-    ngayTra: ''
+    ngayTra: '',
+    ghiChu: ''
   });
 
   // Inline Editing State
@@ -41,7 +43,8 @@ export const FilmDevelopment: React.FC = () => {
     sdt_khach: '',
     cuon_film: '',
     lab: '',
-    ngay_tra: ''
+    ngay_tra: '',
+    ghi_chu: ''
   });
 
   // Confirm Delete Dialog State
@@ -80,7 +83,8 @@ export const FilmDevelopment: React.FC = () => {
         sdtKhach: formData.sdtKhach.trim() || null,
         cuonFilm: formData.cuonFilm.trim(),
         lab: formData.lab.trim() || null,
-        ngayTra: formData.ngayTra || null
+        ngayTra: formData.ngayTra || null,
+        ghiChu: formData.ghiChu.trim() || null
       });
 
       if (res.data.success) {
@@ -92,7 +96,8 @@ export const FilmDevelopment: React.FC = () => {
           sdtKhach: '',
           cuonFilm: '',
           lab: '',
-          ngayTra: ''
+          ngayTra: '',
+          ghiChu: ''
         });
         fetchRecords();
       }
@@ -111,7 +116,8 @@ export const FilmDevelopment: React.FC = () => {
       sdt_khach: record.sdt_khach || '',
       cuon_film: record.cuon_film || '',
       lab: record.lab || '',
-      ngay_tra: record.ngay_tra ? record.ngay_tra.substring(0, 10) : ''
+      ngay_tra: record.ngay_tra ? record.ngay_tra.substring(0, 10) : '',
+      ghi_chu: record.ghi_chu || ''
     });
   };
 
@@ -129,7 +135,8 @@ export const FilmDevelopment: React.FC = () => {
         sdtKhach: editFormData.sdt_khach.trim() || null,
         cuonFilm: editFormData.cuon_film.trim(),
         lab: editFormData.lab.trim() || null,
-        ngayTra: editFormData.ngay_tra || null
+        ngayTra: editFormData.ngay_tra || null,
+        ghiChu: editFormData.ghi_chu.trim() || null
       });
 
       if (res.data.success) {
@@ -222,6 +229,7 @@ export const FilmDevelopment: React.FC = () => {
                 <th className="p-3">Cuộn film</th>
                 <th className="p-3">Lab</th>
                 <th className="p-3 w-36">Ngày trả</th>
+                <th className="p-3">Ghi chú</th>
                 <th className="p-3 text-center w-28">Hành động</th>
               </tr>
             </thead>
@@ -315,6 +323,21 @@ export const FilmDevelopment: React.FC = () => {
                         />
                       ) : (
                         item.ngay_tra ? item.ngay_tra.substring(0, 10) : <span className="text-warm-gray-400 italic">Chưa trả</span>
+                      )}
+                    </td>
+
+                    {/* Ghi chú */}
+                    <td className="p-3 text-warm-gray-700">
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          value={editFormData.ghi_chu}
+                          onChange={e => setEditFormData({ ...editFormData, ghi_chu: e.target.value })}
+                          className="w-full px-2 py-1 rounded border border-vintage-sepia-200 bg-white text-xs text-warm-gray-900"
+                          placeholder="Ghi chú"
+                        />
+                      ) : (
+                        item.ghi_chu || <span className="text-warm-gray-400 italic">Trống</span>
                       )}
                     </td>
 
@@ -447,6 +470,17 @@ export const FilmDevelopment: React.FC = () => {
                   placeholder="Ví dụ: LLab, Croplab..."
                   value={formData.lab}
                   onChange={e => setFormData({ ...formData, lab: e.target.value })}
+                  className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-warm-gray-700 mb-1">Ghi chú</label>
+                <input
+                  type="text"
+                  placeholder="Nhập ghi chú (nếu có)..."
+                  value={formData.ghiChu}
+                  onChange={e => setFormData({ ...formData, ghiChu: e.target.value })}
                   className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900 font-semibold"
                 />
               </div>

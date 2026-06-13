@@ -24,7 +24,7 @@ interface BookingDetail {
   status: string;
   start_date: string;
   end_date: string;
-  deposit_amount: number;
+  deposit_amount: string | number;
   total_rental_fee: number;
   profiles: { full_name: string; phone: string };
   equipment: { serial_number: string; products: { name: string; brand: string } };
@@ -206,9 +206,11 @@ export const RentalsPOS: React.FC = () => {
   // Hour tracking state
   const [deliveredHour, setDeliveredHour] = useState('');
   const [returnedHour, setReturnedHour] = useState('');
+  const [checkinDeposit, setCheckinDeposit] = useState('');
 
   const openCheckinModal = () => {
     setSelectedDeliveredBy('');
+    setCheckinDeposit('');
     const now = new Date();
     const currentHourStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     setDeliveredHour(currentHourStr);
@@ -318,13 +320,15 @@ export const RentalsPOS: React.FC = () => {
       const res = await axiosClient.post(`/bookings/${booking.id}/checkin`, {
         accessories: [],
         deliveredBy,
-        gioNhan: deliveredHour
+        gioNhan: deliveredHour,
+        depositAmount: checkinDeposit
       });
       if (res.data.success) {
         addToast('Bàn giao máy thành công. Thiết bị chuyển sang trạng thái ĐANG THUÊ', 'success');
         setBooking({ 
           ...booking, 
           status: 'CHECKED_IN',
+          deposit_amount: checkinDeposit || booking.deposit_amount,
           accessories_out: [] 
         });
         fetchAllBookings();
@@ -459,7 +463,6 @@ export const RentalsPOS: React.FC = () => {
         cameraModelId: posForm.cameraModelId,
         startDate: posForm.startDate,
         endDate: posForm.endDate,
-        depositAmount: posForm.depositAmount === '' ? undefined : posForm.depositAmount,
         batteryProductId: selectedBatteryId ? Number(selectedBatteryId) : undefined,
         batteryQuantity: selectedBatteryId ? Number(batteryQty) : undefined
       });
@@ -756,12 +759,14 @@ export const RentalsPOS: React.FC = () => {
                     {booking.start_date} đến {booking.end_date}
                   </p>
                 </div>
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Đặt cọc</span>
-                  <p className="text-xs font-semibold text-warm-gray-950 mt-0.5">
-                    {booking.deposit_amount ? (isNaN(Number(booking.deposit_amount)) ? booking.deposit_amount : formatVND(Number(booking.deposit_amount))) : 'Không có'}
-                  </p>
-                </div>
+                {booking.status !== 'PENDING' && booking.status !== 'CONFIRMED' && (
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Đặt cọc</span>
+                    <p className="text-xs font-semibold text-warm-gray-950 mt-0.5">
+                      {booking.deposit_amount ? (isNaN(Number(booking.deposit_amount)) ? booking.deposit_amount : formatVND(Number(booking.deposit_amount))) : 'Không có'}
+                    </p>
+                  </div>
+                )}
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Trạng thái</span>
                   <p className="text-sm mt-0.5">
@@ -917,6 +922,18 @@ export const RentalsPOS: React.FC = () => {
                 value={deliveredHour}
                 onChange={e => setDeliveredHour(e.target.value)}
                 className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
+                Đặt cọc (Có thể điền số hoặc chữ tùy ý, ví dụ: 1.500.000 hoặc Giữ CCCD)
+              </label>
+              <input
+                type="text"
+                placeholder="Nhập giá trị đặt cọc..."
+                value={checkinDeposit}
+                onChange={e => setCheckinDeposit(e.target.value)}
+                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs font-bold"
               />
             </div>
             <div className="flex justify-end gap-3 pt-2">
@@ -1140,18 +1157,7 @@ export const RentalsPOS: React.FC = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-warm-gray-700 mb-1">Đặt cọc</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={posForm.depositAmount}
-                    onChange={(e) => setPosForm({ ...posForm, depositAmount: e.target.value })}
-                    className="w-full pl-8 pr-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg font-bold"
-                  />
-                  <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-                </div>
-              </div>
+              {/* Removed deposit input field as per requirement */}
 
               <div className="pt-4 border-t border-vintage-sepia-200 flex justify-end">
                 <button

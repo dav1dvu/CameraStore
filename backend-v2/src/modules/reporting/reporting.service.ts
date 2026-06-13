@@ -1035,8 +1035,9 @@ export class ReportingService {
     cuonFilm: string;
     lab?: string | null;
     ngayTra?: string | null;
+    ghiChu?: string | null;
   }) {
-    const { ngayTrang, tenKhach, sdtKhach, cuonFilm, lab, ngayTra } = payload;
+    const { ngayTrang, tenKhach, sdtKhach, cuonFilm, lab, ngayTra, ghiChu } = payload;
     if (!ngayTrang || !cuonFilm) {
       throw new Error('Ngày tráng và Cuộn film là bắt buộc');
     }
@@ -1049,7 +1050,8 @@ export class ReportingService {
         sdt_khach: sdtKhach || null,
         cuon_film: cuonFilm,
         lab: lab || null,
-        ngay_tra: ngayTra || null
+        ngay_tra: ngayTra || null,
+        ghi_chu: ghiChu || null
       })
       .select()
       .single();
@@ -1065,8 +1067,9 @@ export class ReportingService {
     cuonFilm?: string;
     lab?: string | null;
     ngayTra?: string | null;
+    ghiChu?: string | null;
   }) {
-    const { ngayTrang, tenKhach, sdtKhach, cuonFilm, lab, ngayTra } = payload;
+    const { ngayTrang, tenKhach, sdtKhach, cuonFilm, lab, ngayTra, ghiChu } = payload;
 
     const updates: any = {};
     if (ngayTrang !== undefined) updates.ngay_trang = ngayTrang;
@@ -1075,6 +1078,7 @@ export class ReportingService {
     if (cuonFilm !== undefined) updates.cuon_film = cuonFilm;
     if (lab !== undefined) updates.lab = lab || null;
     if (ngayTra !== undefined) updates.ngay_tra = ngayTra || null;
+    if (ghiChu !== undefined) updates.ghi_chu = ghiChu || null;
 
     const { data, error } = await supabaseAdmin
       .from('film_developments')

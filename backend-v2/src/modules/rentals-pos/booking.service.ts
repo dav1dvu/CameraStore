@@ -385,7 +385,7 @@ export class BookingService {
     return data;
   }
 
-  static async checkInBooking(bookingId: string | number, accessories: string[], staffId: string, deliveredBy?: number, gioNhan?: string) {
+  static async checkInBooking(bookingId: string | number, accessories: string[], staffId: string, deliveredBy?: number, gioNhan?: string, depositAmount?: string) {
     const { data: booking, error: fetchErr } = await supabaseAdmin
       .from('bookings')
       .select('booking_status')
@@ -398,15 +398,20 @@ export class BookingService {
       throw new Error(`Cannot check-in booking in ${bStatus} status`);
     }
 
+    const updates: any = {
+      booking_status: 'CHECKED_IN',
+      checkin_date: new Date().toISOString(),
+      delivered_by: deliveredBy || null,
+      gio_nhan: gioNhan || null
+    };
+    if (depositAmount !== undefined) {
+      updates.deposit_fee = depositAmount;
+    }
+
     // 1. Update Booking status to CHECKED_IN and record checkin_date
     const { data, error } = await supabaseAdmin
       .from('bookings')
-      .update({
-        booking_status: 'CHECKED_IN',
-        checkin_date: new Date().toISOString(),
-        delivered_by: deliveredBy || null,
-        gio_nhan: gioNhan || null
-      })
+      .update(updates)
       .eq('id', bookingId)
       .select()
       .single();

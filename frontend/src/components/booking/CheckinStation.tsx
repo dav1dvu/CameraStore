@@ -9,7 +9,7 @@ interface BookingDetail {
   status: string;
   start_date: string;
   end_date: string;
-  deposit_amount: number;
+  deposit_amount: string | number;
   total_rental_fee: number;
   profiles: { full_name: string; phone: string };
   equipment: { serial_number: string; products: { name: string; brand: string } };
@@ -27,6 +27,7 @@ export const CheckinStation: React.FC = () => {
   const defaultAccessoriesList = ['Pin LP-E6', 'Sạc pin', 'Thẻ nhớ SD 32GB', 'Dây đeo máy', 'Bao da bảo vệ', 'Kính lọc UV'];
   const [selectedAccessories, setSelectedAccessories] = useState<string[]>(['Pin LP-E6', 'Sạc pin', 'Dây đeo máy']);
   const [customAccessory, setCustomAccessory] = useState('');
+  const [checkinDeposit, setCheckinDeposit] = useState('');
 
   // Return Accessories (Check-out)
   const [returnedAccessories, setReturnedAccessories] = useState<string[]>([]);
@@ -64,6 +65,7 @@ export const CheckinStation: React.FC = () => {
     setLoading(true);
     setBooking(null);
     setSettlementResult(null);
+    setCheckinDeposit('');
     try {
       const res = await axiosClient.get(`/bookings/${id}`);
       if (res.data.success) {
@@ -118,13 +120,15 @@ export const CheckinStation: React.FC = () => {
     if (!booking) return;
     try {
       const res = await axiosClient.post(`/bookings/${booking.id}/checkin`, {
-        accessories: selectedAccessories
+        accessories: selectedAccessories,
+        depositAmount: checkinDeposit
       });
       if (res.data.success) {
         addToast('Nhận máy thành công. Thiết bị đã chuyển sang trạng thái ĐANG THUÊ', 'success');
         setBooking({ 
           ...booking, 
           status: 'CHECKED_IN',
+          deposit_amount: checkinDeposit || booking.deposit_amount,
           accessories_out: selectedAccessories 
         });
         setReturnedAccessories(selectedAccessories);
@@ -360,12 +364,14 @@ export const CheckinStation: React.FC = () => {
                 Từ {booking.start_date} đến {booking.end_date}
               </p>
             </div>
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Đặt cọc</span>
-              <p className="text-sm font-medium text-warm-gray-900 mt-0.5">
-                {booking.deposit_amount ? (isNaN(Number(booking.deposit_amount)) ? booking.deposit_amount : formatVND(Number(booking.deposit_amount))) : 'Không có'}
-              </p>
-            </div>
+            {booking.status !== 'PENDING' && booking.status !== 'CONFIRMED' && (
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Đặt cọc</span>
+                <p className="text-sm font-medium text-warm-gray-900 mt-0.5">
+                  {booking.deposit_amount ? (isNaN(Number(booking.deposit_amount)) ? booking.deposit_amount : formatVND(Number(booking.deposit_amount))) : 'Không có'}
+                </p>
+              </div>
+            )}
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-vintage-gold">Trạng thái đơn</span>
               <p className="text-sm">
@@ -437,7 +443,22 @@ export const CheckinStation: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex justify-end pt-4 border-t border-vintage-sepia-200/50">
+              <div className="pt-2 border-t border-vintage-sepia-200/50 space-y-3">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
+                    Đặt cọc (Có thể điền số hoặc chữ tùy ý, ví dụ: 1.500.000 hoặc Giữ CCCD)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Nhập giá trị đặt cọc..."
+                    value={checkinDeposit}
+                    onChange={e => setCheckinDeposit(e.target.value)}
+                    className="w-full max-w-md px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
                 <button
                   onClick={handleCheckin}
                   className="px-6 py-2.5 rounded bg-muted-green-600 hover:bg-muted-green-800 text-white font-bold cursor-pointer"
