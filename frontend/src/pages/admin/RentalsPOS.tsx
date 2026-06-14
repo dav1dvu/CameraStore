@@ -332,24 +332,23 @@ export const RentalsPOS: React.FC = () => {
 
   // Check Availability State & Handler
   const [availForm, setAvailForm] = useState({
-    modelId: '',
     startDate: '',
     endDate: ''
   });
   const [availLoading, setAvailLoading] = useState(false);
-  const [availResult, setAvailResult] = useState<any | null>(null);
+  const [availResult, setAvailResult] = useState<any[] | null>(null);
 
   const handleCheckAvailabilitySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!availForm.modelId || !availForm.startDate || !availForm.endDate) {
-      addToast('Vui lòng chọn đầy đủ thông tin mẫu máy và ngày', 'error');
+    if (!availForm.startDate || !availForm.endDate) {
+      addToast('Vui lòng chọn đầy đủ ngày bắt đầu và kết thúc', 'error');
       return;
     }
 
     setAvailLoading(true);
     setAvailResult(null);
     try {
-      const res = await axiosClient.get(`/camera-models/${availForm.modelId}/availability`, {
+      const res = await axiosClient.get('/camera-models/all-availability', {
         params: {
           start: availForm.startDate,
           end: availForm.endDate
@@ -467,15 +466,15 @@ export const RentalsPOS: React.FC = () => {
     setLoadingPOS(true);
     
     const now = new Date();
-    const formatDateTimeLocal = (d: Date) => {
+    const formatDateTimeLocal = (d: Date, defaultTime: string) => {
       const pad = (num: number) => String(num).padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${defaultTime}`;
     };
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     setPosForm(prev => ({
       ...prev,
-      startDate: formatDateTimeLocal(now),
-      endDate: formatDateTimeLocal(tomorrow)
+      startDate: formatDateTimeLocal(now, '08:30'),
+      endDate: formatDateTimeLocal(tomorrow, '22:00')
     }));
 
     try {
@@ -1338,30 +1337,14 @@ export const RentalsPOS: React.FC = () => {
 
 
 
-      {/* SUBTAB 4: CHECK AVAILABILITY */}
       {activeSubTab === 'check-availability' && (
-        <div className="bg-vintage-sepia-100 p-6 rounded-xl border border-vintage-sepia-200 shadow-sm max-w-xl mx-auto text-xs space-y-6">
+        <div className="bg-vintage-sepia-100 p-6 rounded-xl border border-vintage-sepia-200 shadow-sm max-w-2xl mx-auto text-xs space-y-6">
           <div className="flex items-center gap-3 border-b border-vintage-sepia-200 pb-3">
             <Loader2 className="text-vintage-gold h-5 w-5" />
             <h2 className="font-serif font-bold text-base text-vintage-sepia-900">Kiểm tra số lượng máy ảnh trống</h2>
           </div>
 
           <form onSubmit={handleCheckAvailabilitySubmit} className="space-y-4">
-            <div>
-              <label className="block font-bold text-warm-gray-700 mb-1">Thiết bị / Mẫu máy thuê *</label>
-              <select
-                required
-                value={availForm.modelId}
-                onChange={(e) => setAvailForm({ ...availForm, modelId: e.target.value })}
-                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg focus:outline-none focus:border-vintage-gold"
-              >
-                <option value="">-- Chọn mẫu máy ảnh --</option>
-                {cameraModels.map(m => (
-                  <option key={m.id} value={m.id}>{m.brand} {m.model_name}</option>
-                ))}
-              </select>
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block font-bold text-warm-gray-700 mb-1">Ngày bắt đầu thuê *</label>
@@ -1397,28 +1380,40 @@ export const RentalsPOS: React.FC = () => {
             </div>
           </form>
 
-          {availResult !== null && (
+          {availResult !== null && Array.isArray(availResult) && (
             <div className="bg-white p-5 rounded-lg border border-vintage-sepia-200 space-y-3">
               <h3 className="font-serif font-bold text-sm text-vintage-sepia-900 border-b border-vintage-sepia-150 pb-2">
                 Kết quả kiểm tra khả dụng
               </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-[10px] font-bold text-warm-gray-500 uppercase">Tổng số máy trong kho:</span>
-                  <p className="text-lg font-bold text-vintage-sepia-900">{availResult.totalEquipments || 0}</p>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-warm-gray-500 uppercase">Số máy đang bận:</span>
-                  <p className="text-lg font-bold text-film-red">{availResult.bookedCount || 0}</p>
-                </div>
-              </div>
-              <div className="pt-2 border-t border-vintage-sepia-100 flex justify-between items-center">
-                <span className="text-xs font-bold text-warm-gray-900 uppercase">Khả dụng cho thuê:</span>
-                <span className={`text-xl font-extrabold px-3 py-1 rounded ${
-                  availResult.availableCount > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
-                  {availResult.availableCount || 0} máy
-                </span>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-vintage-sepia-200 text-warm-gray-500 font-bold uppercase text-[10px]">
+                      <th className="py-2 text-left">Hãng</th>
+                      <th className="py-2 text-left">Mẫu máy</th>
+                      <th className="py-2 text-right">Tổng số máy</th>
+                      <th className="py-2 text-right">Đang bận</th>
+                      <th className="py-2 text-right">Khả dụng</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-vintage-sepia-100 text-xs">
+                    {availResult.map((m: any) => (
+                      <tr key={m.id} className="hover:bg-vintage-sepia-50/50">
+                        <td className="py-2 font-bold text-vintage-sepia-900 text-left">{m.brand}</td>
+                        <td className="py-2 text-vintage-sepia-900 text-left">{m.model_name}</td>
+                        <td className="py-2 text-right font-mono">{m.totalEquipments}</td>
+                        <td className="py-2 text-right font-mono text-film-red">{m.bookedCount}</td>
+                        <td className="py-2 text-right font-mono">
+                          <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                            m.availableCount > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {m.availableCount} máy trống
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}

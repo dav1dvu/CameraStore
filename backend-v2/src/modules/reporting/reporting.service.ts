@@ -375,6 +375,7 @@ export class ReportingService {
         battery_quantity,
         gio_nhan,
         gio_tra,
+        deposit_fee,
         customers (
           id,
           first_name,
@@ -484,6 +485,7 @@ export class ReportingService {
           batteryQuantity: b.battery_quantity || 0,
           gioNhan: b.gio_nhan || '',
           gioTra: b.gio_tra || '',
+          depositFee: b.deposit_fee || '0',
           createdAt: b.created_at
         });
       });
@@ -522,6 +524,7 @@ export class ReportingService {
           batteryQuantity: b.battery_quantity || 0,
           gioNhan: b.gio_nhan || '',
           gioTra: b.gio_tra || '',
+          depositFee: b.deposit_fee || '0',
           createdAt: b.created_at
         });
       });
@@ -558,6 +561,7 @@ export class ReportingService {
         receivedBy: null,
         receivedByDetails: null,
         notes: '',
+        depositFee: '-',
         createdAt: o.created_at
       });
     });
@@ -765,6 +769,7 @@ export class ReportingService {
       if (fields.notes !== undefined) bookingUpdates.notes = fields.notes;
       if (fields.gioNhan !== undefined) bookingUpdates.gio_nhan = fields.gioNhan;
       if (fields.gioTra !== undefined) bookingUpdates.gio_tra = fields.gioTra;
+      if (fields.depositFee !== undefined) bookingUpdates.deposit_fee = fields.depositFee;
 
       // Check if user manually updated the revenue
       const currentRevenue = Number(booking?.total_rent_fee || 0);

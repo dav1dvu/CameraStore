@@ -197,7 +197,7 @@ export const App: React.FC = () => {
           onToggle={toggleSidebar}
         />
         <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
-          <main className="flex-1 w-full mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+          <main className={`flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 ${currentPath === '/reporting' ? 'max-w-none' : 'max-w-7xl'}`}>
             {currentPath === '/home' && <DashboardHome />}
             {currentPath === '/profile-logs' && <ProfileLogs />}
             {currentPath === '/inventory' && <Inventory />}

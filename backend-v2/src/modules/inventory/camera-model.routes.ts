@@ -7,6 +7,7 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/', CameraModelController.list);
+router.get('/all-availability', CameraModelController.checkAllAvailability);
 router.get('/:id/availability', CameraModelController.checkAvailability);
 router.get('/:id', CameraModelController.getById);
 router.post('/', requireRole('ADMIN', 'NHANVIENTHUE'), CameraModelController.create);

@@ -193,4 +193,28 @@ export class CameraModelController {
       next(error);
     }
   }
+
+  static async checkAllAvailability(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { start, end } = req.query;
+
+      if (!start || !end) {
+        return res.status(400).json({
+          success: false,
+          data: null,
+          error: 'Thiếu tham số start và end (YYYY-MM-DD)'
+        });
+      }
+
+      const result = await CameraModelService.checkAllAvailability(start as string, end as string);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+        error: null
+      });
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }

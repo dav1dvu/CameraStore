@@ -28,6 +28,7 @@ interface OrderHistoryItem {
   batteryQuantity?: number;
   gioNhan?: string;
   gioTra?: string;
+  depositFee: string;
 }
 
 interface Employee {
@@ -71,7 +72,8 @@ export const Reporting: React.FC = () => {
     receivedBy: '',
     notes: '',
     gioNhan: '',
-    gioTra: ''
+    gioTra: '',
+    depositFee: ''
   });
 
   // Custom Confirm Delete State
@@ -176,7 +178,8 @@ export const Reporting: React.FC = () => {
       receivedBy: item.receivedBy ? String(item.receivedBy) : '',
       notes: item.notes || '',
       gioNhan: item.gioNhan || '',
-      gioTra: item.gioTra || ''
+      gioTra: item.gioTra || '',
+      depositFee: item.depositFee || '0'
     });
   };
 
@@ -227,7 +230,8 @@ export const Reporting: React.FC = () => {
         receivedBy: editFormData.receivedBy ? Number(editFormData.receivedBy) : null,
         notes: editFormData.notes,
         gioNhan: editFormData.gioNhan,
-        gioTra: editFormData.gioTra
+        gioTra: editFormData.gioTra,
+        depositFee: editFormData.depositFee
       });
 
       if (res.data.success) {
@@ -408,7 +412,7 @@ export const Reporting: React.FC = () => {
       ) : historyItems.length === 0 ? (
         <p className="text-center py-8 text-xs text-warm-gray-700 italic">Không tìm thấy đơn hàng nào trong hệ thống.</p>
       ) : (
-        <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl overflow-x-auto shadow-sm">
+        <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl overflow-x-hidden shadow-sm">
           <table className="w-full text-left text-[10px] border-collapse min-w-full [&_td]:!p-2 [&_th]:!p-2">
             <thead>
               <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider">
@@ -420,6 +424,7 @@ export const Reporting: React.FC = () => {
                 <th className="p-3">Tên khách hàng</th>
                 <th className="p-3 w-22">Số điện thoại</th>
                 <th className="p-3 w-28">Địa chỉ</th>
+                <th className="p-3 w-24">Cọc</th>
                 <th className="p-3">Sản phẩm</th>
                 <th className="p-3">Pin kèm theo</th>
                 <th className="p-3 w-20">Doanh thu</th>
@@ -534,6 +539,20 @@ export const Reporting: React.FC = () => {
                     {/* Địa chỉ */}
                     <td className="p-3 text-warm-gray-700 truncate max-w-xs" title={item.customerAddress}>
                       {item.customerAddress || '-'}
+                    </td>
+
+                    {/* Cọc */}
+                    <td className="p-3 text-warm-gray-900 font-semibold truncate max-w-xs">
+                      {isEditing && item.type === 'RENTAL' ? (
+                        <input
+                          type="text"
+                          value={editFormData.depositFee}
+                          onChange={e => setEditFormData({ ...editFormData, depositFee: e.target.value })}
+                          className="w-full px-1.5 py-1 rounded border border-vintage-sepia-200 bg-white text-xs font-semibold"
+                        />
+                      ) : (
+                        item.type === 'RENTAL' ? (item.depositFee || '0') : '-'
+                      )}
                     </td>
 
                     {/* Sản phẩm */}

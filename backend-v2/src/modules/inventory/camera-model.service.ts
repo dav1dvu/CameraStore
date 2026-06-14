@@ -205,4 +205,79 @@ export class CameraModelService {
       bookedCount
     };
   }
+
+  static async checkAllAvailability(startDate: string, endDate: string) {
+    // 1. Get all camera models
+    const { data: models, error: modelErr } = await supabaseAdmin
+      .from('camera_models')
+      .select('id, model_name, brand, rent_price_per_day');
+    if (modelErr) throw modelErr;
+
+    // 2. Get all equipments
+    const { data: equipments, error: eqErr } = await supabaseAdmin
+      .from('equipments')
+      .select('id, product_id');
+    if (eqErr) throw eqErr;
+
+    // 3. Get all booking equipment links
+    const { data: bookedLinks, error: blErr } = await supabaseAdmin
+      .from('booking_equipments')
+      .select(`
+        equipment_id,
+        bookings!inner (
+          booking_status,
+          start_date,
+          end_date
+        )
+      `);
+    if (blErr) throw blErr;
+
+    const bookedEquipmentIds = new Set<string>();
+    const qStartStr = startDate.substring(0, 10);
+    const qEndStr = endDate.substring(0, 10);
+
+    (bookedLinks || []).forEach((link: any) => {
+      const booking = link.bookings;
+      if (!booking) return;
+      const status = booking.booking_status;
+      if (status === 'CANCELED' || status === 'CANCELLED' || status === 'CHECKED_OUT') return;
+
+      const bStartStr = booking.start_date.substring(0, 10);
+      const bEndStr = booking.end_date.substring(0, 10);
+
+      // Check overlap
+      if (bStartStr <= qEndStr && bEndStr >= qStartStr) {
+        bookedEquipmentIds.add(link.equipment_id);
+      }
+    });
+
+    const totalEquipMap: Record<string, number> = {};
+    const bookedEquipMap: Record<string, number> = {};
+
+    (equipments || []).forEach((eq: any) => {
+      const modelId = String(eq.product_id);
+      totalEquipMap[modelId] = (totalEquipMap[modelId] || 0) + 1;
+      if (bookedEquipmentIds.has(eq.id)) {
+        bookedEquipMap[modelId] = (bookedEquipMap[modelId] || 0) + 1;
+      }
+    });
+
+    const results = (models || []).map((m: any) => {
+      const modelId = String(m.id);
+      const totalEquipments = totalEquipMap[modelId] || 0;
+      const bookedCount = bookedEquipMap[modelId] || 0;
+      const availableCount = Math.max(0, totalEquipments - bookedCount);
+      return {
+        id: m.id,
+        model_name: m.model_name,
+        brand: m.brand,
+        rent_price_per_day: m.rent_price_per_day,
+        totalEquipments,
+        bookedCount,
+        availableCount
+      };
+    });
+
+    return results;
+  }
 }
