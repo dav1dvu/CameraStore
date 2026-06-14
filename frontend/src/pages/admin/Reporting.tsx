@@ -412,8 +412,8 @@ export const Reporting: React.FC = () => {
       ) : historyItems.length === 0 ? (
         <p className="text-center py-8 text-xs text-warm-gray-700 italic">Không tìm thấy đơn hàng nào trong hệ thống.</p>
       ) : (
-        <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl overflow-x-hidden shadow-sm">
-          <table className="w-full text-left text-[10px] border-collapse min-w-full [&_td]:!p-2 [&_th]:!p-2">
+        <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl overflow-x-auto shadow-sm">
+          <table className="w-full text-left text-[11px] border-collapse min-w-full [&_td]:!p-2 [&_th]:!p-2">
             <thead>
               <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider">
                 <th className="p-3 w-14">Hình thức</th>
