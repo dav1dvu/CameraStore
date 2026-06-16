@@ -9,6 +9,7 @@ import {
 
 interface Product {
   id: string;
+  model_id?: string;
   name: string;
   slug: string;
   brand: string;
@@ -118,7 +119,8 @@ export const Inventory: React.FC = () => {
       };
 
       if (editingProduct) {
-        const res = await axiosClient.put(`/products/${editingProduct.id}`, payload);
+        const updateId = editingProduct.model_id || editingProduct.id;
+        const res = await axiosClient.put(`/products/${updateId}`, payload);
         if (res.data.success) {
           addToast('Cập nhật sản phẩm thành công', 'success');
           fetchProducts();

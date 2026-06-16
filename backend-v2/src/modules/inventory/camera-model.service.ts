@@ -17,9 +17,17 @@ export interface CameraModelFilters {
 export class CameraModelService {
   static async listCameraModels(filters: CameraModelFilters) {
     let query = supabaseAdmin
-      .from('camera_models')
+      .from('products')
       .select(`
-        *,
+        id,
+        categories_id,
+        name,
+        brand,
+        price,
+        rent_price_per_day,
+        deposit_amount,
+        stock_quantity,
+        is_active,
         categories (
           id,
           name
@@ -28,7 +36,7 @@ export class CameraModelService {
       .order('id', { ascending: false });
 
     if (filters.categoryId) {
-      query = query.eq('catgories_id', filters.categoryId);
+      query = query.eq('categories_id', filters.categoryId);
     }
     if (filters.isActive !== undefined) {
       query = query.eq('is_active', filters.isActive);
@@ -36,7 +44,19 @@ export class CameraModelService {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data;
+
+    return (data || []).map((p: any) => ({
+      id: p.id,
+      catgories_id: p.categories_id,
+      model_name: p.name,
+      brand: p.brand,
+      rent_price_per_day: p.rent_price_per_day ? Number(p.rent_price_per_day) : 0,
+      deposit_amount: p.deposit_amount ? Number(p.deposit_amount) : 0,
+      sale_price: p.price ? Number(p.price) : 0,
+      stock_quantity: p.stock_quantity ? Number(p.stock_quantity) : 0,
+      is_active: p.is_active,
+      categories: p.categories
+    }));
   }
 
   static async getCameraModelById(id: string | number) {

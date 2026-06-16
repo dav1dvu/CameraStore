@@ -17,6 +17,7 @@ interface CameraModel {
   model_name: string;
   brand: string;
   rent_price_per_day: number;
+  stock_quantity?: number;
 }
 
 interface BookingDetail {
@@ -491,7 +492,8 @@ export const RentalsPOS: React.FC = () => {
           const id = String(m.id);
           if (seenIds.has(id)) return false;
           seenIds.add(id);
-          return true;
+          // Only show models with stock_quantity >= 1 and rent_price_per_day > 0
+          return (m.stock_quantity ?? 0) >= 1 && (m.rent_price_per_day ?? 0) > 0;
         });
         setCameraModels(uniqueModels);
       }
