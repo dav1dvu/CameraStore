@@ -55,6 +55,9 @@ export const Reporting: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
 
+  // Sub-tabs state
+  const [activeSubTab, setActiveSubTab] = useState<'placement' | 'fulfillment'>('placement');
+
   // Pagination
   const [offset, setOffset] = useState(0);
   const limit = 10;
@@ -90,7 +93,7 @@ export const Reporting: React.FC = () => {
     }
   };
 
-  const fetchOrderHistory = async (reset = false, monthVal = selectedMonth, yearVal = selectedYear) => {
+  const fetchOrderHistory = async (reset = false, monthVal = selectedMonth, yearVal = selectedYear, tabVal = activeSubTab) => {
     if (reset) {
       setLoading(true);
     } else {
@@ -99,7 +102,7 @@ export const Reporting: React.FC = () => {
 
     const currentOffset = reset ? 0 : offset;
     try {
-      let url = `/reports/order-history?limit=${limit}&offset=${currentOffset}`;
+      let url = `/reports/order-history?limit=${limit}&offset=${currentOffset}&tab=${tabVal}`;
       if (monthVal && yearVal) {
         url += `&month=${monthVal}&year=${yearVal}`;
       }
@@ -146,11 +149,11 @@ export const Reporting: React.FC = () => {
 
   const handleRefresh = () => {
     setEditingRowId(null);
-    fetchOrderHistory(true, selectedMonth, selectedYear);
+    fetchOrderHistory(true, selectedMonth, selectedYear, activeSubTab);
   };
 
   const handleLoadMore = () => {
-    fetchOrderHistory(false, selectedMonth, selectedYear);
+    fetchOrderHistory(false, selectedMonth, selectedYear, activeSubTab);
   };
 
   const handleFilterChange = (month: string, year: string) => {
@@ -158,11 +161,17 @@ export const Reporting: React.FC = () => {
     setSelectedYear(year);
     // If only one is selected and not the other, we can't filter yet (except if both empty/all)
     if ((month && year) || (!month && !year)) {
-      fetchOrderHistory(true, month, year);
+      fetchOrderHistory(true, month, year, activeSubTab);
     } else {
       // Just reset list for now or keep old list but fetch without filter
-      fetchOrderHistory(true, '', '');
+      fetchOrderHistory(true, '', '', activeSubTab);
     }
+  };
+
+  const handleTabChange = (tab: 'placement' | 'fulfillment') => {
+    setActiveSubTab(tab);
+    setEditingRowId(null);
+    fetchOrderHistory(true, selectedMonth, selectedYear, tab);
   };
 
   const startEdit = (item: OrderHistoryItem) => {
@@ -237,7 +246,7 @@ export const Reporting: React.FC = () => {
       if (res.data.success) {
         addToast('Cập nhật thông tin đơn hàng thành công', 'success');
         setEditingRowId(null);
-        fetchOrderHistory(true, selectedMonth, selectedYear);
+        fetchOrderHistory(true, selectedMonth, selectedYear, activeSubTab);
       }
     } catch (err: any) {
       addToast(err.message || 'Lỗi khi cập nhật đơn hàng', 'error');
@@ -257,7 +266,7 @@ export const Reporting: React.FC = () => {
       if (res.data.success) {
         addToast('Xóa đơn hàng thành công', 'success');
         setConfirmDeleteId(null);
-        fetchOrderHistory(true, selectedMonth, selectedYear);
+        fetchOrderHistory(true, selectedMonth, selectedYear, activeSubTab);
       }
     } catch (err: any) {
       addToast(err.message || 'Lỗi khi xóa đơn hàng', 'error');
@@ -320,6 +329,30 @@ export const Reporting: React.FC = () => {
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           Tải lại
+        </button>
+      </div>
+
+      {/* Sub-tabs for Order History & Delivery/Receive History */}
+      <div className="flex gap-2 border-b border-vintage-sepia-200 pb-2 text-xs">
+        <button
+          onClick={() => handleTabChange('placement')}
+          className={`px-4 py-2 rounded-lg font-bold transition-all cursor-pointer ${
+            activeSubTab === 'placement'
+              ? 'bg-vintage-sepia-900 text-vintage-sepia-50'
+              : 'text-warm-gray-700 hover:text-vintage-gold'
+          }`}
+        >
+          Lịch sử lên đơn
+        </button>
+        <button
+          onClick={() => handleTabChange('fulfillment')}
+          className={`px-4 py-2 rounded-lg font-bold transition-all cursor-pointer ${
+            activeSubTab === 'fulfillment'
+              ? 'bg-vintage-sepia-900 text-vintage-sepia-50'
+              : 'text-warm-gray-700 hover:text-vintage-gold'
+          }`}
+        >
+          Lịch sử giao/nhận
         </button>
       </div>
 

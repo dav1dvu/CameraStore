@@ -123,6 +123,9 @@ export class CameraModelService {
     if (updates.salePrice !== undefined) mappedUpdates.sale_price = updates.salePrice;
     if (updates.isActive !== undefined) mappedUpdates.is_active = updates.isActive;
 
+    const nameChanged = updates.modelName !== undefined && updates.modelName !== oldModel.model_name;
+    const categoryChanged = updates.categoryId !== undefined && Number(updates.categoryId) !== oldModel.catgories_id;
+
     const { data, error } = await supabaseAdmin
       .from('camera_models')
       .update(mappedUpdates)
@@ -131,6 +134,37 @@ export class CameraModelService {
       .single();
 
     if (error) throw error;
+
+    // Sync sibling products if name or category changed
+    if (nameChanged || categoryChanged) {
+      const oldNameClean = (oldModel.model_name || '').trim().toLowerCase();
+      const oldBrandClean = (oldModel.brand || '').trim().toLowerCase();
+
+      const { data: siblings, error: sibErr } = await supabaseAdmin
+        .from('products')
+        .select('id, name, brand')
+        .not('id', 'eq', id);
+
+      if (!sibErr && siblings) {
+        const sibsToUpdate = siblings.filter((s: any) => {
+          const sNameClean = (s.name || '').trim().toLowerCase();
+          const sBrandClean = (s.brand || '').trim().toLowerCase();
+          return sNameClean === oldNameClean && sBrandClean === oldBrandClean;
+        });
+
+        if (sibsToUpdate.length > 0) {
+          const sibUpdates: any = {};
+          if (updates.modelName !== undefined) sibUpdates.name = updates.modelName;
+          if (updates.categoryId !== undefined) sibUpdates.categories_id = Number(updates.categoryId);
+
+          const sibIds = sibsToUpdate.map((s: any) => s.id);
+          await supabaseAdmin
+            .from('products')
+            .update(sibUpdates)
+            .in('id', sibIds);
+        }
+      }
+    }
     return data;
   }
 
@@ -229,10 +263,12 @@ export class CameraModelService {
   }
 
   static async checkAllAvailability(startDate: string, endDate: string) {
-    // 1. Get all camera models
+    // 1. Get active camera models with a valid rental price
     const { data: models, error: modelErr } = await supabaseAdmin
       .from('camera_models')
-      .select('id, model_name, brand, rent_price_per_day');
+      .select('id, model_name, brand, rent_price_per_day, is_active')
+      .eq('is_active', true)
+      .gt('rent_price_per_day', 0);
     if (modelErr) throw modelErr;
 
     // 2. Get all equipments
@@ -273,27 +309,53 @@ export class CameraModelService {
       }
     });
 
-    const totalEquipMap: Record<string, number> = {};
-    const bookedEquipMap: Record<string, number> = {};
+    // Group models by brand and model_name (case-insensitive, trimmed)
+    const groups = new Map<string, {
+      id: any;
+      model_name: string;
+      brand: string;
+      rent_price_per_day: number;
+      productIds: Set<string>;
+    }>();
 
-    (equipments || []).forEach((eq: any) => {
-      const modelId = String(eq.product_id);
-      totalEquipMap[modelId] = (totalEquipMap[modelId] || 0) + 1;
-      if (bookedEquipmentIds.has(eq.id)) {
-        bookedEquipMap[modelId] = (bookedEquipMap[modelId] || 0) + 1;
+    (models || []).forEach((m: any) => {
+      const brandClean = (m.brand || '').trim();
+      const modelNameClean = (m.model_name || '').trim();
+      const key = `${brandClean.toLowerCase()}||${modelNameClean.toLowerCase()}`;
+      if (!groups.has(key)) {
+        groups.set(key, {
+          id: m.id,
+          model_name: modelNameClean,
+          brand: brandClean,
+          rent_price_per_day: Number(m.rent_price_per_day || 0),
+          productIds: new Set<string>()
+        });
       }
+      groups.get(key)!.productIds.add(String(m.id));
     });
 
-    const results = (models || []).map((m: any) => {
-      const modelId = String(m.id);
-      const totalEquipments = totalEquipMap[modelId] || 0;
-      const bookedCount = bookedEquipMap[modelId] || 0;
+    // Aggregate equipments and availability counts for each group
+    const results = Array.from(groups.values()).map((group) => {
+      let totalEquipments = 0;
+      let bookedCount = 0;
+
+      (equipments || []).forEach((eq: any) => {
+        const prodIdStr = String(eq.product_id);
+        if (group.productIds.has(prodIdStr)) {
+          totalEquipments++;
+          if (bookedEquipmentIds.has(eq.id)) {
+            bookedCount++;
+          }
+        }
+      });
+
       const availableCount = Math.max(0, totalEquipments - bookedCount);
+
       return {
-        id: m.id,
-        model_name: m.model_name,
-        brand: m.brand,
-        rent_price_per_day: m.rent_price_per_day,
+        id: group.id,
+        model_name: group.model_name,
+        brand: group.brand,
+        rent_price_per_day: group.rent_price_per_day,
         totalEquipments,
         bookedCount,
         availableCount

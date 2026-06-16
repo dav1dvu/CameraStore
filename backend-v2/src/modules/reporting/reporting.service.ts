@@ -357,7 +357,7 @@ export class ReportingService {
       .sort((a, b) => b.date.localeCompare(a.date));
   }
 
-  static async getOrderHistory(limit: number = 10, offset: number = 0, month?: number, year?: number, requestorRole?: string) {
+  static async getOrderHistory(limit: number = 10, offset: number = 0, month?: number, year?: number, requestorRole?: string, tab?: string) {
     // 1. Fetch bookings
     let bookingsQuery = supabaseAdmin
       .from('bookings')
@@ -437,6 +437,14 @@ export class ReportingService {
         ordersQuery = ordersQuery.gte('created_at', startDateStr).lte('created_at', endDateStr);
       }
 
+      if (tab === 'placement') {
+        bookingsQuery = bookingsQuery.in('booking_status', ['PENDING', 'CONFIRMED']);
+        ordersQuery = ordersQuery.in('status', ['PENDING']);
+      } else if (tab === 'fulfillment') {
+        bookingsQuery = bookingsQuery.not('booking_status', 'in', '("PENDING","CONFIRMED")');
+        ordersQuery = ordersQuery.not('status', 'in', '("PENDING")');
+      }
+
       const { data: bookingsData, error: bookingsErr } = await bookingsQuery.order('created_at', { ascending: false });
       if (bookingsErr) throw bookingsErr;
 
@@ -496,6 +504,12 @@ export class ReportingService {
         const endDateStr = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59.999Z`;
 
         bookingsQuery = bookingsQuery.gte('start_date', startDateStr).lte('start_date', endDateStr);
+      }
+
+      if (tab === 'placement') {
+        bookingsQuery = bookingsQuery.in('booking_status', ['PENDING', 'CONFIRMED']);
+      } else if (tab === 'fulfillment') {
+        bookingsQuery = bookingsQuery.not('booking_status', 'in', '("PENDING","CONFIRMED")');
       }
 
       const { data: bookingsData, error: bookingsErr } = await bookingsQuery.order('created_at', { ascending: false });

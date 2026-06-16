@@ -97,7 +97,9 @@ export class ReportingController {
       const month = req.query.month ? Number(req.query.month) : undefined;
       const year = req.query.year ? Number(req.query.year) : undefined;
 
-      const result = await ReportingService.getOrderHistory(limit, offset, month, year, (req as any).user?.role);
+      const tab = req.query.tab ? String(req.query.tab) : undefined;
+
+      const result = await ReportingService.getOrderHistory(limit, offset, month, year, (req as any).user?.role, tab);
       res.status(200).json({
         success: true,
         data: result,

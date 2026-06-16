@@ -345,6 +345,10 @@ export class ProductService {
     if (totalStock !== undefined) mappedUpdates.stock_quantity = totalStock;
     if (categoryId !== undefined) mappedUpdates.categories_id = Number(categoryId);
 
+    const nameChanged = name !== undefined && name !== oldProduct.name;
+    const brandChanged = brand !== undefined && brand !== oldProduct.brand;
+    const categoryChanged = categoryId !== undefined && Number(categoryId) !== oldProduct.categories_id;
+
     // 2. Perform the update
     const { data: product, error: prodError } = await supabaseAdmin
       .from('products')
@@ -354,6 +358,38 @@ export class ProductService {
       .single();
       
     if (prodError) throw prodError;
+
+    // Sync sibling products if name, brand, or category changed
+    if (nameChanged || brandChanged || categoryChanged) {
+      const oldNameClean = (oldProduct.name || '').trim().toLowerCase();
+      const oldBrandClean = (oldProduct.brand || '').trim().toLowerCase();
+
+      const { data: siblings, error: sibErr } = await supabaseAdmin
+        .from('products')
+        .select('id, name, brand')
+        .not('id', 'eq', id);
+
+      if (!sibErr && siblings) {
+        const sibsToUpdate = siblings.filter((s: any) => {
+          const sNameClean = (s.name || '').trim().toLowerCase();
+          const sBrandClean = (s.brand || '').trim().toLowerCase();
+          return sNameClean === oldNameClean && sBrandClean === oldBrandClean;
+        });
+
+        if (sibsToUpdate.length > 0) {
+          const sibUpdates: any = {};
+          if (name !== undefined) sibUpdates.name = name;
+          if (brand !== undefined) sibUpdates.brand = brand;
+          if (categoryId !== undefined) sibUpdates.categories_id = Number(categoryId);
+
+          const sibIds = sibsToUpdate.map((s: any) => s.id);
+          await supabaseAdmin
+            .from('products')
+            .update(sibUpdates)
+            .in('id', sibIds);
+        }
+      }
+    }
 
     // 3. Sync equipments if totalStock is provided
     if (totalStock !== undefined) {
