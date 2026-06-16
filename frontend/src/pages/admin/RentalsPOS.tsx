@@ -485,15 +485,19 @@ export const RentalsPOS: React.FC = () => {
       }
       const modelsRes = await axiosClient.get('/camera-models');
       if (modelsRes.data.success) {
-        // Deduplicate camera models by id to prevent extra dropdown entries
+        // Deduplicate camera models by brand and model_name to prevent extra dropdown entries (e.g. duplicate Pentax)
         const rawModels = modelsRes.data.data || [];
-        const seenIds = new Set<string>();
+        const seenKeys = new Set<string>();
         const uniqueModels = rawModels.filter((m: any) => {
-          const id = String(m.id);
-          if (seenIds.has(id)) return false;
-          seenIds.add(id);
-          // Only show models with stock_quantity >= 1 and rent_price_per_day > 0
-          return (m.stock_quantity ?? 0) >= 1 && (m.rent_price_per_day ?? 0) > 0;
+          const key = `${(m.brand || '').trim().toLowerCase()}||${(m.model_name || '').trim().toLowerCase()}`;
+          if (seenKeys.has(key)) return false;
+
+          const isAvailable = (m.stock_quantity ?? 0) >= 1 && (m.rent_price_per_day ?? 0) > 0;
+          if (isAvailable) {
+            seenKeys.add(key);
+            return true;
+          }
+          return false;
         });
         setCameraModels(uniqueModels);
       }

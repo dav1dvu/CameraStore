@@ -310,7 +310,7 @@ export const Inventory: React.FC = () => {
           ) : filteredProducts.length === 0 ? (
             <p className="text-center py-8 text-xs text-warm-gray-700 italic">Không tìm thấy sản phẩm nào.</p>
           ) : (
-            <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl overflow-x-auto shadow-sm">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider">
@@ -398,7 +398,7 @@ export const Inventory: React.FC = () => {
           {categories.length === 0 ? (
             <p className="text-center py-8 text-xs text-warm-gray-700 italic">Không có danh mục nào.</p>
           ) : (
-            <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl overflow-hidden shadow-sm text-xs">
+            <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl overflow-x-auto shadow-sm text-xs">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider">
