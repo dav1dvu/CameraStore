@@ -26,11 +26,13 @@ export class CameraModelService {
         price,
         rent_price_per_day,
         deposit_amount,
-        stock_quantity,
         is_active,
         categories (
           id,
           name
+        ),
+        equipments (
+          id
         )
       `)
       .order('id', { ascending: false });
@@ -53,7 +55,7 @@ export class CameraModelService {
       rent_price_per_day: p.rent_price_per_day ? Number(p.rent_price_per_day) : 0,
       deposit_amount: p.deposit_amount ? Number(p.deposit_amount) : 0,
       sale_price: p.price ? Number(p.price) : 0,
-      stock_quantity: p.stock_quantity ? Number(p.stock_quantity) : 0,
+      stock_quantity: p.equipments ? p.equipments.length : 0,
       is_active: p.is_active,
       categories: p.categories
     }));
