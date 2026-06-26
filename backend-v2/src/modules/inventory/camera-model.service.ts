@@ -265,8 +265,8 @@ export class CameraModelService {
   static async checkAllAvailability(startDate: string, endDate: string) {
     // 1. Get active camera models with a valid rental price
     const { data: models, error: modelErr } = await supabaseAdmin
-      .from('camera_models')
-      .select('id, model_name, brand, rent_price_per_day, is_active')
+      .from('products')
+      .select('id, name, brand, rent_price_per_day, is_active')
       .eq('is_active', true)
       .gt('rent_price_per_day', 0);
     if (modelErr) throw modelErr;
@@ -320,7 +320,7 @@ export class CameraModelService {
 
     (models || []).forEach((m: any) => {
       const brandClean = (m.brand || '').trim();
-      const modelNameClean = (m.model_name || '').trim();
+      const modelNameClean = (m.name || '').trim();
       const key = `${brandClean.toLowerCase()}||${modelNameClean.toLowerCase()}`;
       if (!groups.has(key)) {
         groups.set(key, {
