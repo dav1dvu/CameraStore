@@ -110,22 +110,28 @@ export class ProductService {
     // Add Sales
     saleProducts.forEach((p: any) => {
       const key = `${(p.brand || '').trim().toLowerCase()}||${(p.name || '').trim().toLowerCase()}`;
-      mergedMap.set(key, {
-        id: p.id,
-        name: p.name,
-        slug: String(p.id),
-        brand: p.brand || '',
-        description: p.description || '',
-        category: p.categories,
-        salePrice: Number(p.price || p.sale_price || 0),
-        rentalPricePerDay: Number(p.rent_price_per_day || 0),
-        images: p.images || [],
-        specs: p.specs || {},
-        availableStock: p.stock_quantity,
-        totalStock: p.stock_quantity,
-        createdAt: p.created_at,
-        type: 'SALE'
-      });
+      const existing = mergedMap.get(key);
+      if (existing) {
+        existing.availableStock += p.stock_quantity;
+        existing.totalStock += p.stock_quantity;
+      } else {
+        mergedMap.set(key, {
+          id: p.id,
+          name: p.name,
+          slug: String(p.id),
+          brand: p.brand || '',
+          description: p.description || '',
+          category: p.categories,
+          salePrice: Number(p.price || p.sale_price || 0),
+          rentalPricePerDay: Number(p.rent_price_per_day || 0),
+          images: p.images || [],
+          specs: p.specs || {},
+          availableStock: p.stock_quantity,
+          totalStock: p.stock_quantity,
+          createdAt: p.created_at,
+          type: 'SALE'
+        });
+      }
     });
 
     // Add/Merge Rentals
@@ -144,9 +150,11 @@ export class ProductService {
           existing.salePrice = Number(m.sale_price || 0);
         }
         // Sync stock information using physical equipment items
-        existing.availableStock = stock;
-        existing.totalStock = equip.length;
-        existing.type = 'BOTH';
+        existing.availableStock += stock;
+        existing.totalStock += equip.length;
+        if (existing.type === 'SALE') {
+          existing.type = 'BOTH';
+        }
       } else {
         mergedMap.set(key, {
           id: m.id,
