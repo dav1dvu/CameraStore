@@ -330,6 +330,11 @@ export class CameraModelService {
           rent_price_per_day: Number(m.rent_price_per_day || 0),
           productIds: new Set<string>()
         });
+      } else {
+        const group = groups.get(key)!;
+        group.id = m.id;
+        group.rent_price_per_day = Number(m.rent_price_per_day || 0);
+        group.productIds.clear();
       }
       groups.get(key)!.productIds.add(String(m.id));
     });
