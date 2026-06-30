@@ -446,17 +446,14 @@ export const Reporting: React.FC = () => {
         <p className="text-center py-8 text-xs text-warm-gray-700 italic">Không tìm thấy đơn hàng nào trong hệ thống.</p>
       ) : (
         <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl overflow-x-auto shadow-sm">
-          <table className="w-full text-left text-[11px] border-collapse min-w-full [&_td]:!p-2 [&_th]:!p-2">
+          <table className="w-full text-left text-[13px] border-collapse min-w-full [&_td]:!p-2 [&_th]:!p-2">
             <thead>
               <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider">
-                <th className="p-3 w-14">Hình thức</th>
                 <th className="p-3 w-20">Ngày giao</th>
                 <th className="p-3 w-14">Giờ giao</th>
                 <th className="p-3 w-20">Ngày trả</th>
                 <th className="p-3 w-14">Giờ trả</th>
                 <th className="p-3">Tên khách hàng</th>
-                <th className="p-3 w-22">Số điện thoại</th>
-                <th className="p-3 w-28">Địa chỉ</th>
                 <th className="p-3 w-24">Cọc</th>
                 <th className="p-3">Sản phẩm</th>
                 <th className="p-3">Pin kèm theo</th>
@@ -473,14 +470,6 @@ export const Reporting: React.FC = () => {
                 const isEditing = editingRowId === item.id;
                 return (
                   <tr key={item.id} className="hover:bg-vintage-sepia-50/50">
-                    {/* Hình thức */}
-                    <td className="p-3 font-bold">
-                      <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                        item.type === 'RENTAL' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'
-                      }`}>
-                        {item.type === 'RENTAL' ? 'Đơn thuê' : 'Đơn bán'}
-                      </span>
-                    </td>
 
                     {/* Ngày giao */}
                     <td className="p-3 font-mono">
@@ -555,24 +544,6 @@ export const Reporting: React.FC = () => {
                       )}
                     </td>
 
-                    {/* SĐT */}
-                    <td className="p-3 font-mono">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          value={editFormData.customerPhone}
-                          onChange={e => setEditFormData({ ...editFormData, customerPhone: e.target.value })}
-                          className="w-full px-1.5 py-1 rounded border border-vintage-sepia-200 bg-white text-xs font-mono"
-                        />
-                      ) : (
-                        item.customerPhone || '-'
-                      )}
-                    </td>
-
-                    {/* Địa chỉ */}
-                    <td className="p-3 text-warm-gray-700 truncate max-w-xs" title={item.customerAddress}>
-                      {item.customerAddress || '-'}
-                    </td>
 
                     {/* Cọc */}
                     <td className="p-3 text-warm-gray-900 font-semibold truncate max-w-xs">

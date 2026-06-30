@@ -283,6 +283,9 @@ export const RentalsPOS: React.FC = () => {
   // Hour tracking state
   const [deliveredHour, setDeliveredHour] = useState('');
   const [returnedHour, setReturnedHour] = useState('');
+  const [deliveredDate, setDeliveredDate] = useState('');
+  const [returnedDate, setReturnedDate] = useState('');
+  const [checkoutNotes, setCheckoutNotes] = useState('');
   const [checkinDeposit, setCheckinDeposit] = useState('');
 
   const openCheckinModal = () => {
@@ -291,14 +294,21 @@ export const RentalsPOS: React.FC = () => {
     const now = new Date();
     const currentHourStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     setDeliveredHour(currentHourStr);
+    
+    const pad = (num: number) => String(num).padStart(2, '0');
+    setDeliveredDate(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`);
     setShowCheckinModal(true);
   };
 
   const openCheckoutModal = () => {
     setSelectedReceivedBy('');
+    setCheckoutNotes('');
     const now = new Date();
     const currentHourStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     setReturnedHour(currentHourStr);
+
+    const pad = (num: number) => String(num).padStart(2, '0');
+    setReturnedDate(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`);
     setShowCheckoutModal(true);
   };
 
@@ -396,6 +406,7 @@ export const RentalsPOS: React.FC = () => {
       const res = await axiosClient.post(`/bookings/${booking.id}/checkin`, {
         accessories: [],
         deliveredBy,
+        ngayGiao: deliveredDate,
         gioNhan: deliveredHour,
         depositAmount: checkinDeposit
       });
@@ -418,13 +429,13 @@ export const RentalsPOS: React.FC = () => {
   const handleSettleCheckout = async (receivedBy: number) => {
     if (!booking) return;
     try {
-      // Financial checkout settlement
       const res = await axiosClient.post('/transactions/settle', {
         bookingId: booking.id,
         isDamaged,
         damageCharge,
-        notes: 'Hoàn trả máy sạch sẽ',
+        notes: checkoutNotes || 'Hoàn trả máy sạch sẽ',
         receivedBy,
+        ngayTra: returnedDate,
         gioTra: returnedHour
       });
 
@@ -970,53 +981,18 @@ export const RentalsPOS: React.FC = () => {
                 </div>
               )}
 
-              {/* Checkout return & penalty panel */}
+              {/* Checkout return panel */}
               {booking.status === 'CHECKED_IN' && !settlementResult && (
-                <div className="border-t border-vintage-sepia-200 pt-6 space-y-5">
-                  <h3 className="font-serif font-bold text-base text-vintage-sepia-900 flex items-center gap-2">
-                    <ShieldAlert className="text-film-red" /> Nhận trả thiết bị &amp; Quyết toán cọc
-                  </h3>
-
-                  <div className="flex items-center gap-3 bg-vintage-sepia-50 p-4 rounded-lg">
-                    <input
-                      type="checkbox"
-                      id="isDamaged"
-                      checked={isDamaged}
-                      onChange={(e) => setIsDamaged(e.target.checked)}
-                      className="h-4 w-4 text-vintage-gold rounded focus:ring-vintage-gold"
-                    />
-                    <label htmlFor="isDamaged" className="text-sm font-semibold text-warm-gray-900 cursor-pointer">
-                      Thiết bị trả về bị hư hỏng / trầy xước
-                    </label>
-                  </div>
-
-                  {isDamaged && (
-                    <div>
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
-                        Chi phí đền bù hư hại (₫)
-                      </label>
-                      <input
-                        type="number"
-                        value={damageCharge}
-                        onChange={(e) => setDamageCharge(Number(e.target.value))}
-                        min="0"
-                        placeholder="Vui lòng nhập chi phí đền bù..."
-                        className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
-                      />
-                    </div>
-                  )}
-
-                  <div className="flex justify-end">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        openCheckoutModal();
-                      }}
-                      className="px-5 py-2.5 rounded bg-film-red text-white font-bold hover:bg-film-red-light text-xs uppercase cursor-pointer"
-                    >
-                      Xác nhận nhận máy
-                    </button>
-                  </div>
+                <div className="bg-vintage-sepia-50 p-5 rounded-lg border border-vintage-sepia-200 flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      openCheckoutModal();
+                    }}
+                    className="px-5 py-2.5 rounded bg-film-red hover:bg-film-red-light text-white font-bold cursor-pointer transition-colors text-xs"
+                  >
+                    Xác nhận nhận máy
+                  </button>
                 </div>
               )}
 
@@ -1084,14 +1060,22 @@ export const RentalsPOS: React.FC = () => {
             </div>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
-                Giờ giao máy
+                Ngày &amp; Giờ giao máy
               </label>
-              <input
-                type="time"
-                value={deliveredHour}
-                onChange={e => setDeliveredHour(e.target.value)}
-                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={deliveredDate}
+                  onChange={e => setDeliveredDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
+                />
+                <input
+                  type="time"
+                  value={deliveredHour}
+                  onChange={e => setDeliveredHour(e.target.value)}
+                  className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
+                />
+              </div>
             </div>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
@@ -1155,13 +1139,33 @@ export const RentalsPOS: React.FC = () => {
             </div>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
-                Giờ nhận máy
+                Ngày &amp; Giờ nhận máy
               </label>
-              <input
-                type="time"
-                value={returnedHour}
-                onChange={e => setReturnedHour(e.target.value)}
-                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
+              <div className="flex gap-2">
+                <input
+                  type="date"
+                  value={returnedDate}
+                  onChange={e => setReturnedDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
+                />
+                <input
+                  type="time"
+                  value={returnedHour}
+                  onChange={e => setReturnedHour(e.target.value)}
+                  className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-warm-gray-700 mb-1">
+                Ghi chú (Tùy chọn)
+              </label>
+              <textarea
+                value={checkoutNotes}
+                onChange={e => setCheckoutNotes(e.target.value)}
+                rows={2}
+                placeholder="Ví dụ: Hoàn trả máy sạch sẽ"
+                className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-xs focus:outline-none focus:border-vintage-gold"
               />
             </div>
             <div className="flex justify-end gap-3 pt-2">
@@ -1228,28 +1232,6 @@ export const RentalsPOS: React.FC = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block font-bold text-warm-gray-700 mb-1">Số điện thoại khách hàng (tùy chọn)</label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: 0901234567"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg focus:outline-none focus:border-vintage-gold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-warm-gray-700 mb-1">Địa chỉ khách hàng (tùy chọn)</label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: 123 Điện Biên Phủ, Quận 1"
-                    value={customerAddress}
-                    onChange={(e) => setCustomerAddress(e.target.value)}
-                    className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg focus:outline-none focus:border-vintage-gold"
-                  />
-                </div>
-              </div>
 
               <div>
                 <label className="block font-bold text-warm-gray-700 mb-1">Thiết bị / Mẫu máy thuê *</label>

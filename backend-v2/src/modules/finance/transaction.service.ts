@@ -8,12 +8,13 @@ export interface SettlementPayload {
   damageCharge: number;
   notes: string;
   receivedBy?: number;
+  ngayTra?: string;
   gioTra?: string;
 }
 
 export class TransactionService {
   static async settleDeposit(payload: SettlementPayload) {
-    const { bookingId, isDamaged, damageCharge, notes, receivedBy, gioTra } = payload;
+    const { bookingId, isDamaged, damageCharge, notes, receivedBy, ngayTra, gioTra } = payload;
 
     // 1. Fetch booking to make sure it exists
     const { data: booking, error: fetchErr } = await supabaseAdmin
@@ -69,17 +70,22 @@ export class TransactionService {
     const finalRentFee = baseFee + extraCharge;
 
     // 3. Update booking status to CHECKED_OUT, record penalty, return hour, and final rent fee
+    const updates: any = {
+      booking_status: 'CHECKED_OUT',
+      penalty_fee: damageCharge || 0,
+      deposit_status: damageCharge > 0 ? 'DEDUCTED' : 'REFUNDED',
+      received_by: receivedBy || null,
+      notes: notes || null,
+      gio_tra: gioTra || null,
+      total_rent_fee: finalRentFee
+    };
+    if (ngayTra) {
+      updates.end_date = ngayTra;
+    }
+
     const { error: bookingUpdateErr } = await supabaseAdmin
       .from('bookings')
-      .update({
-        booking_status: 'CHECKED_OUT',
-        penalty_fee: damageCharge || 0,
-        deposit_status: damageCharge > 0 ? 'DEDUCTED' : 'REFUNDED',
-        received_by: receivedBy || null,
-        notes: notes || null,
-        gio_tra: gioTra || null,
-        total_rent_fee: finalRentFee
-      })
+      .update(updates)
       .eq('id', bookingId);
 
     if (bookingUpdateErr) throw bookingUpdateErr;

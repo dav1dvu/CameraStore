@@ -6,6 +6,7 @@ import { BookingService } from './booking.service.js';
 const checkInSchema = z.object({
   accessories: z.array(z.string()).optional().default([]),
   deliveredBy: z.number().optional(),
+  ngayGiao: z.string().optional(),
   gioNhan: z.string().optional(),
   depositAmount: z.union([z.string(), z.number()]).optional()
 });
@@ -115,6 +116,7 @@ export class BookingController {
         parsed.data.accessories,
         staffId,
         parsed.data.deliveredBy,
+        parsed.data.ngayGiao,
         parsed.data.gioNhan,
         parsed.data.depositAmount !== undefined ? String(parsed.data.depositAmount) : undefined
       );

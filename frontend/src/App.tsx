@@ -25,13 +25,7 @@ import { StaffManagement } from './pages/admin/StaffManagement';
 import { Reporting } from './pages/admin/Reporting';
 import { FilmDevelopment } from './pages/admin/FilmDevelopment';
 import { Expenses } from './pages/admin/Expenses';
-import { SaleOrderCreate } from './pages/admin/banmayfilm/SaleOrderCreate';
-import { SaleOrderHistory } from './pages/admin/banmayfilm/SaleOrderHistory';
-import { SaleInventory } from './pages/admin/banmayfilm/SaleInventory';
-import { SaleImport } from './pages/admin/banmayfilm/SaleImport';
 import { RentalImport } from './pages/admin/RentalImport';
-import { SaleStaffManagement } from './pages/admin/banmayfilm/SaleStaffManagement';
-import { SaleCustomerCRM } from './pages/admin/banmayfilm/SaleCustomerCRM';
 import { DashboardHome } from './pages/admin/DashboardHome';
 
 export const App: React.FC = () => {
@@ -83,13 +77,6 @@ export const App: React.FC = () => {
         return;
       }
 
-      // BANMAYFILM routes
-      const isBanPath = ['/sale-order-create', '/sale-order-history', '/sale-inventory', '/sale-import', '/sale-expenses', '/sale-staff', '/sale-customers'].includes(path);
-      if (isBanPath && role !== 'NHANVIENBAN') {
-        addToast('Từ chối truy cập: Quyền hạn không hợp lệ!', 'error');
-        setCurrentPath(getDefaultPath());
-        return;
-      }
 
       // MUONMAYCHUT routes
       const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/film-development', '/muon-expenses', '/staff-management'].includes(path);
@@ -168,14 +155,7 @@ export const App: React.FC = () => {
     '/staff-management',
     '/profile-logs',
     '/muon-expenses',
-    '/sale-order-create',
-    '/sale-order-history',
-    '/sale-inventory',
-    '/sale-import',
-    '/rental-import',
-    '/sale-expenses',
-    '/sale-staff',
-    '/sale-customers'
+    '/rental-import'
   ].includes(currentPath);
 
   if (isAuthenticated && isManagementPath) {
@@ -207,14 +187,7 @@ export const App: React.FC = () => {
             {currentPath === '/reporting' && <Reporting />}
             {currentPath === '/film-development' && <FilmDevelopment />}
             {currentPath === '/muon-expenses' && <Expenses businessType="MUONMAYCHUT" />}
-            {currentPath === '/sale-order-create' && <SaleOrderCreate />}
-            {currentPath === '/sale-order-history' && <SaleOrderHistory />}
-            {currentPath === '/sale-inventory' && <SaleInventory />}
-            {currentPath === '/sale-import' && <SaleImport />}
             {currentPath === '/rental-import' && <RentalImport />}
-            {currentPath === '/sale-expenses' && <Expenses businessType="BANMAYFILM" />}
-            {currentPath === '/sale-staff' && <SaleStaffManagement />}
-            {currentPath === '/sale-customers' && <SaleCustomerCRM />}
           </main>
           <ToastNotification />
         </div>
@@ -264,7 +237,7 @@ export const App: React.FC = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Info */}
           <div className="space-y-4 text-left">
-            <h3 className="font-serif text-lg font-bold tracking-tight text-vintage-sepia-900 uppercase">TheFilmery</h3>
+            <h3 className="font-serif text-lg font-bold tracking-tight text-vintage-sepia-900 uppercase">MUONMAYCHUT</h3>
             <p className="text-xs text-warm-gray-700 leading-relaxed">
               Cửa hàng uy tín hàng đầu cung cấp dịch vụ mua bán và cho thuê máy ảnh film cổ điển, ống kính vintage, và phụ kiện analog cao cấp tại Việt Nam.
             </p>
@@ -322,7 +295,7 @@ export const App: React.FC = () => {
 
         {/* Bottom footer bar */}
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-12 pt-6 border-t border-vintage-sepia-200/60 text-center text-xs text-warm-gray-700">
-          <p className="font-mono">&copy; 2026 TheFilmery | CLB Nhiếp ảnh Analog Việt Nam. Bảo lưu mọi quyền.</p>
+          <p className="font-mono">&copy; 2026 MUONMAYCHUT | CLB Nhiếp ảnh Analog Việt Nam. Bảo lưu mọi quyền.</p>
         </div>
       </footer>
     </div>

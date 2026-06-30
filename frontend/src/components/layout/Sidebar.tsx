@@ -18,15 +18,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHid
   const { user, logout } = useAuthStore();
 
   const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/film-development', '/muon-expenses', '/staff-management'].includes(currentPath);
-  const isBanPath = ['/sale-order-create', '/sale-order-history', '/sale-inventory', '/sale-import', '/sale-expenses', '/sale-staff', '/sale-customers'].includes(currentPath);
 
   const [muonExpanded, setMuonExpanded] = React.useState(true);
-  const [banExpanded, setBanExpanded] = React.useState(true);
 
   // Auto-expand matching group on mount / path change
   React.useEffect(() => {
     if (isMuonPath) setMuonExpanded(true);
-    if (isBanPath) setBanExpanded(true);
   }, [currentPath]);
 
   const role = user?.role;
@@ -34,10 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHid
   const hasAccess = (path: string) => {
     if (role === 'ADMIN') return true;
     
-    if (role === 'NHANVIENBAN') {
-      const isBanPath = ['/sale-order-create', '/sale-order-history', '/sale-inventory', '/sale-import', '/sale-expenses', '/sale-staff', '/sale-customers', '/profile-logs'].includes(path);
-      return isBanPath;
-    }
+
     
     if (role === 'NHANVIENTHUE') {
       const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/film-development', '/muon-expenses', '/staff-management', '/profile-logs'].includes(path);
@@ -58,15 +52,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHid
     { name: 'Nhân sự', path: '/staff-management', icon: UserCheck },
   ];
 
-  const banItems = [
-    { name: 'Lập đơn', path: '/sale-order-create', icon: ShoppingCart },
-    { name: 'Kho máy', path: '/sale-inventory', icon: Package },
-    { name: 'Nhập kho', path: '/sale-import', icon: ArrowDownToLine },
-    { name: 'Khách hàng', path: '/sale-customers', icon: Users },
-    { name: 'Lịch sử', path: '/sale-order-history', icon: BarChart2 },
-    { name: 'Chi phí', path: '/sale-expenses', icon: CreditCard },
-    { name: 'Nhân sự', path: '/sale-staff', icon: UserCheck },
-  ];
 
   const renderNavGroup = (
     title: string,
@@ -134,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHid
             role === 'ADMIN' ? 'cursor-pointer hover:text-vintage-gold/80 transition-all' : ''
           }`}
         >
-          THEFILMERY
+          MUONMAYCHUT
         </h2>
         <button 
           onClick={onToggle}
@@ -147,7 +132,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHid
 
       {/* Navigation Links */}
       <nav className="flex-1 py-4 px-4 space-y-4 overflow-y-auto">
-        {(role === 'ADMIN' || role === 'NHANVIENBAN') && renderNavGroup('BANMAYFILM', banExpanded, () => setBanExpanded(!banExpanded), banItems, Tag)}
+
         {(role === 'ADMIN' || role === 'NHANVIENTHUE') && renderNavGroup('MUONMAYCHUT', muonExpanded, () => setMuonExpanded(!muonExpanded), muonItems, Camera)}
         
         <div className="pt-2 border-t border-vintage-sepia-800/40">

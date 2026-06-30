@@ -22,10 +22,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPath }) => {
     if (role === 'ADMIN') return true;
     if (path === '/system-auth') return false;
     
-    if (role === 'NHANVIENBAN') {
-      const isBanPath = ['/sale-order-create', '/sale-order-history', '/sale-inventory', '/sale-import', '/sale-expenses', '/sale-staff', '/sale-customers', '/profile-logs'].includes(path);
-      return isBanPath;
-    }
+
     
     if (role === 'NHANVIENTHUE') {
       const isMuonPath = ['/rentals-pos', '/inventory', '/rental-import', '/customer-crm', '/reporting', '/film-development', '/muon-expenses', '/staff-management', '/profile-logs'].includes(path);
@@ -44,26 +41,11 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPath }) => {
         { name: 'Lịch sử (Thuê)', path: '/reporting', icon: BarChart2 },
         { name: 'Tráng film (Thuê)', path: '/film-development', icon: Film },
         { name: 'Nhân sự (Thuê)', path: '/staff-management', icon: Users },
-        { name: 'Lập đơn (Bán)', path: '/sale-order-create', icon: CheckSquare },
-        { name: 'Kho máy (Bán)', path: '/sale-inventory', icon: Package },
-        { name: 'Nhập kho (Bán)', path: '/sale-import', icon: Package },
-        { name: 'Khách hàng (Bán)', path: '/sale-customers', icon: Users },
-        { name: 'Lịch sử (Bán)', path: '/sale-order-history', icon: BarChart2 },
-        { name: 'Nhân sự (Bán)', path: '/sale-staff', icon: Users },
+
         { name: 'Quản trị hệ thống', path: '/profile-logs', icon: ClipboardList },
       ];
     }
-    if (role === 'NHANVIENBAN') {
-      return [
-        { name: 'Lập đơn', path: '/sale-order-create', icon: CheckSquare },
-        { name: 'Kho máy', path: '/sale-inventory', icon: Package },
-        { name: 'Nhập kho', path: '/sale-import', icon: Package },
-        { name: 'Khách hàng', path: '/sale-customers', icon: Users },
-        { name: 'Lịch sử', path: '/sale-order-history', icon: BarChart2 },
-        { name: 'Nhân sự', path: '/sale-staff', icon: Users },
-        { name: 'Quản trị hệ thống', path: '/profile-logs', icon: ClipboardList },
-      ];
-    }
+
     if (role === 'NHANVIENTHUE') {
       return [
         { name: 'Lập đơn', path: '/rentals-pos', icon: CheckSquare },
@@ -96,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigate, currentPath }) => {
           className="flex cursor-pointer items-center gap-2 text-vintage-sepia-900 group"
         >
           <Camera className="h-7 w-7 text-vintage-gold transition-transform group-hover:rotate-12" />
-          <span className="font-serif text-2xl font-bold tracking-tight">THEFILMERY ERP</span>
+          <span className="font-serif text-2xl font-bold tracking-tight">MUONMAYCHUT</span>
         </div>
 
         {/* LEFT BRAND SECTION */}

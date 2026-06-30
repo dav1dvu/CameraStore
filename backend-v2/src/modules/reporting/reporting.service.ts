@@ -580,8 +580,12 @@ export class ReportingService {
       });
     });
 
-    // Sort combined history by createdAt descending
-    history.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Sort combined history
+    if (tab === 'fulfillment') {
+      history.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+    } else {
+      history.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
 
     // Paginate
     const paginated = history.slice(offset, offset + limit);

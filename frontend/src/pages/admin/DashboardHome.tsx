@@ -202,13 +202,7 @@ export const DashboardHome: React.FC = () => {
       </div>
 
       {/* Dashboard KPI cards container */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {renderKPIBlock(
-          'BANMAYFILM', 
-          data?.banmayfilm || dummyStats, 
-          'gold-red', 
-          Tag
-        )}
+      <div className="grid grid-cols-1 gap-8">
         {renderKPIBlock(
           'MUONMAYCHUT', 
           data?.muonmaychut || dummyStats, 

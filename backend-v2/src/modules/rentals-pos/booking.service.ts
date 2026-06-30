@@ -157,7 +157,9 @@ export class BookingService {
         deposit_fee: finalDepositAmount,
         booking_status: 'PENDING',
         battery_product_id: batteryProductId || null,
-        battery_quantity: batteryQuantity || 0
+        battery_quantity: batteryQuantity || 0,
+        gio_nhan: '08:30',
+        gio_tra: '22:00'
       })
       .select()
       .single();
@@ -385,7 +387,7 @@ export class BookingService {
     return data;
   }
 
-  static async checkInBooking(bookingId: string | number, accessories: string[], staffId: string, deliveredBy?: number, gioNhan?: string, depositAmount?: string) {
+  static async checkInBooking(bookingId: string | number, accessories: string[], staffId: string, deliveredBy?: number, ngayGiao?: string, gioNhan?: string, depositAmount?: string) {
     const { data: booking, error: fetchErr } = await supabaseAdmin
       .from('bookings')
       .select('booking_status')
@@ -404,6 +406,9 @@ export class BookingService {
       delivered_by: deliveredBy || null,
       gio_nhan: gioNhan || null
     };
+    if (ngayGiao) {
+      updates.start_date = ngayGiao;
+    }
     if (depositAmount !== undefined) {
       updates.deposit_fee = depositAmount;
     }
