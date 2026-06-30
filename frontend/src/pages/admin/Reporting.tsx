@@ -449,14 +449,14 @@ export const Reporting: React.FC = () => {
           <table className="w-full text-left text-[13px] border-collapse min-w-full [&_td]:!p-2 [&_th]:!p-2">
             <thead>
               <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider">
-                <th className="p-3 w-20">Ngày giao</th>
+                <th className="p-3 w-28">Ngày giao</th>
                 <th className="p-3 w-14">Giờ giao</th>
-                <th className="p-3 w-20">Ngày trả</th>
+                <th className="p-3 w-28">Ngày trả</th>
                 <th className="p-3 w-14">Giờ trả</th>
-                <th className="p-3">Tên khách hàng</th>
+                <th className="p-3 w-40">Tên khách hàng</th>
                 <th className="p-3 w-24">Cọc</th>
                 <th className="p-3">Sản phẩm</th>
-                <th className="p-3">Pin kèm theo</th>
+                <th className="p-3 w-20">Pin</th>
                 <th className="p-3 w-20">Doanh thu</th>
                 <th className="p-3 w-20">Trạng thái</th>
                 <th className="p-3 w-16">Người giao</th>
