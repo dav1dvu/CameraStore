@@ -53,7 +53,7 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
   });
 
   const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
-  const years = ['2024', '2025', '2026', '2027', '2028'];
+  const years = ['2026', '2027', '2028'];
 
   const fetchEmployees = async () => {
     const endpoint = businessType === 'MUONMAYCHUT' ? '/employees' : '/sale-employees';
@@ -274,14 +274,7 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
                     </td>
                   </tr>
                 ))}
-                {/* Total row */}
-                <tr className="bg-vintage-sepia-900/5 font-extrabold border-t border-vintage-sepia-200">
-                  <td className="p-4" colSpan={3}>TỔNG PHÁT SINH THÁNG {selectedMonth}/{selectedYear}</td>
-                  <td className={`p-4 text-right font-mono text-[14px] whitespace-nowrap ${totalSum >= 0 ? 'text-film-red' : 'text-muted-green-600'}`}>
-                    {totalSum < 0 ? `+${formatVND(Math.abs(totalSum))}` : `-${formatVND(totalSum)}`}
-                  </td>
-                  <td className="p-4" colSpan={3}></td>
-                </tr>
+
               </tbody>
             </table>
           </div>

@@ -30,7 +30,7 @@ export const DashboardHome: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>(String(now.getFullYear()));
 
   const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
-  const years = ['2024', '2025', '2026', '2027', '2028'];
+  const years = ['2026', '2027', '2028'];
 
   const fetchDashboardData = async () => {
     setLoading(true);
