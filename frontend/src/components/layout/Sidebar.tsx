@@ -48,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath, isHid
     { name: 'Khách hàng', path: '/customer-crm', icon: Users },
     { name: 'Lịch sử', path: '/reporting', icon: BarChart2 },
     { name: 'Tráng film', path: '/film-development', icon: Film },
-    { name: 'Chi phí', path: '/muon-expenses', icon: CreditCard },
+    { name: 'Phát sinh', path: '/muon-expenses', icon: CreditCard },
     { name: 'Nhân sự', path: '/staff-management', icon: UserCheck },
   ];
 

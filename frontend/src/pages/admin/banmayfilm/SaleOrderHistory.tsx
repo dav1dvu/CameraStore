@@ -74,7 +74,7 @@ export const SaleOrderHistory: React.FC = () => {
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
-  const years = ['2024', '2025', '2026', '2027'];
+  const years = ['2024', '2025', '2026', '2027', '2028'];
 
   const loadReferenceData = async () => {
     try {

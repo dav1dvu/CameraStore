@@ -30,7 +30,7 @@ export const DashboardHome: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>(String(now.getFullYear()));
 
   const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
-  const years = ['2024', '2025', '2026', '2027'];
+  const years = ['2024', '2025', '2026', '2027', '2028'];
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -101,7 +101,7 @@ export const DashboardHome: React.FC = () => {
           {/* Expenses */}
           <div className="p-4 rounded-xl bg-white border border-vintage-sepia-200 flex flex-col justify-between hover:border-vintage-gold transition-all duration-300 shadow-sm">
             <div className="flex items-center justify-between text-warm-gray-600 mb-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider">Chi phí</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">Phát sinh</span>
               <CreditCard size={14} className="text-film-red" />
             </div>
             <span className="text-xl font-serif font-black tracking-tight text-vintage-sepia-900 truncate" title={formatVND(stats.expenses)}>

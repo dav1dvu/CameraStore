@@ -978,7 +978,7 @@ export class ReportingService {
     // 3. Expenses: MUONMAYCHUT and BANMAYFILM
     const { data: expenses, error: expensesErr } = await supabaseAdmin
       .from('expenses')
-      .select('business_type, amount')
+      .select('business_type, amount, transaction_type, paid_by')
       .gte('expense_date', startDateStrSimple)
       .lte('expense_date', endDateStrSimple);
 
@@ -987,10 +987,20 @@ export class ReportingService {
     let muonExpenses = 0;
     let banExpenses = 0;
     (expenses || []).forEach((e) => {
+      const amt = Number(e.amount) || 0;
+      const type = e.transaction_type || 'CHI';
+      
+      let finalAmt = 0;
+      if (type === 'CHI') {
+        finalAmt = amt; // Chi phí (+) -> làm giảm lợi nhuận
+      } else if (type === 'THU' && e.paid_by === 'Doanh nghiệp') {
+        finalAmt = -amt; // Thu nhập từ Doanh nghiệp (-) -> làm tăng lợi nhuận
+      }
+
       if (e.business_type === 'MUONMAYCHUT') {
-        muonExpenses += Number(e.amount) || 0;
+        muonExpenses += finalAmt;
       } else if (e.business_type === 'BANMAYFILM') {
-        banExpenses += Number(e.amount) || 0;
+        banExpenses += finalAmt;
       }
     });
 

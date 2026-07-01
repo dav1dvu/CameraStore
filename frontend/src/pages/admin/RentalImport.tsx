@@ -77,7 +77,7 @@ export const RentalImport: React.FC = () => {
   });
 
   const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
-  const years = ['2024', '2025', '2026', '2027'];
+  const years = ['2024', '2025', '2026', '2027', '2028'];
 
   const loadInitialData = async () => {
     try {

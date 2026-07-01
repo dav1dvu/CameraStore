@@ -40,7 +40,7 @@ export class ExpenseController {
   static async remove(req: Request, res: Response, next: NextFunction) {
     try {
       await ExpenseService.deleteExpense(Number(req.params.id));
-      res.json({ success: true, message: 'Đã xóa chi phí thành công' });
+      res.json({ success: true, message: 'Đã xóa phát sinh thành công' });
     } catch (err) {
       next(err);
     }

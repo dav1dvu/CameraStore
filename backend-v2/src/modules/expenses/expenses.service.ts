@@ -7,6 +7,7 @@ export interface ExpensePayload {
   amount: number;
   paidBy: string;
   notes?: string;
+  transactionType?: 'CHI' | 'THU';
 }
 
 export class ExpenseService {
@@ -23,7 +24,8 @@ export class ExpenseService {
         description: payload.description,
         amount: payload.amount,
         paid_by: payload.paidBy,
-        notes: payload.notes || null
+        notes: payload.notes || null,
+        transaction_type: payload.transactionType || 'CHI'
       })
       .select()
       .single();
@@ -58,6 +60,7 @@ export class ExpenseService {
     if (updates.amount !== undefined) mappedUpdates.amount = updates.amount;
     if (updates.paidBy !== undefined) mappedUpdates.paid_by = updates.paidBy;
     if (updates.notes !== undefined) mappedUpdates.notes = updates.notes;
+    if (updates.transactionType !== undefined) mappedUpdates.transaction_type = updates.transactionType;
 
     const { data, error } = await supabaseAdmin
       .from('expenses')
@@ -87,7 +90,7 @@ export class ExpenseService {
 
     const { data, error } = await supabaseAdmin
       .from('expenses')
-      .select('paid_by, amount')
+      .select('paid_by, amount, transaction_type')
       .eq('business_type', businessType)
       .gte('expense_date', startDate)
       .lte('expense_date', endDate);
@@ -99,7 +102,13 @@ export class ExpenseService {
     (data || []).forEach((item: any) => {
       const paidBy = item.paid_by;
       const amt = Number(item.amount) || 0;
-      summary[paidBy] = (summary[paidBy] || 0) + amt;
+      const type = item.transaction_type || 'CHI';
+      
+      if (type === 'CHI') {
+        summary[paidBy] = (summary[paidBy] || 0) + amt;
+      } else if (type === 'THU') {
+        summary[paidBy] = (summary[paidBy] || 0) - amt;
+      }
     });
 
     return Object.entries(summary).map(([paidBy, totalAmount]) => ({

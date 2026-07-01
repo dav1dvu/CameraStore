@@ -14,6 +14,7 @@ interface Expense {
   amount: number;
   paid_by: string;
   notes?: string;
+  transaction_type: 'CHI' | 'THU';
   created_at: string;
 }
 
@@ -47,11 +48,12 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
     description: '',
     amount: 0,
     paidBy: 'Doanh nghiệp',
-    notes: ''
+    notes: '',
+    transactionType: 'CHI' as 'CHI' | 'THU'
   });
 
   const months = Array.from({ length: 12 }, (_, i) => String(i + 1));
-  const years = ['2024', '2025', '2026', '2027'];
+  const years = ['2024', '2025', '2026', '2027', '2028'];
 
   const fetchEmployees = async () => {
     const endpoint = businessType === 'MUONMAYCHUT' ? '/employees' : '/sale-employees';
@@ -103,19 +105,20 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
         description: formData.description,
         amount: Number(formData.amount),
         paidBy: formData.paidBy,
-        notes: formData.notes
+        notes: formData.notes,
+        transactionType: formData.transactionType
       };
 
       if (editingExpense) {
         const res = await axiosClient.put(`/expenses/${editingExpense.id}`, payload);
         if (res.data.success) {
-          addToast('Cập nhật chi phí thành công', 'success');
+          addToast('Cập nhật phát sinh thành công', 'success');
           fetchExpenses();
         }
       } else {
         const res = await axiosClient.post('/expenses', payload);
         if (res.data.success) {
-          addToast('Ghi nhận chi phí mới thành công', 'success');
+          addToast('Ghi nhận phát sinh thành công', 'success');
           fetchExpenses();
         }
       }
@@ -126,11 +129,11 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa dòng chi phí này?')) return;
+    if (!window.confirm('Bạn có chắc chắn muốn xóa dòng phát sinh này?')) return;
     try {
       const res = await axiosClient.delete(`/expenses/${id}`);
       if (res.data.success) {
-        addToast('Xóa chi phí thành công', 'success');
+        addToast('Xóa phát sinh thành công', 'success');
         fetchExpenses();
       }
     } catch (err: any) {
@@ -145,7 +148,8 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
       description: expense.description,
       amount: expense.amount,
       paidBy: expense.paid_by,
-      notes: expense.notes || ''
+      notes: expense.notes || '',
+      transactionType: expense.transaction_type || 'CHI'
     });
     setIsModalOpen(true);
   };
@@ -158,10 +162,10 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
       <div className="border-b border-vintage-sepia-200 pb-4 flex justify-between items-end">
         <div>
           <h1 className="font-serif font-extrabold text-3xl text-vintage-sepia-900 flex items-center gap-2">
-            <CreditCard className="text-vintage-gold" /> Chi phí
+            <CreditCard className="text-vintage-gold" /> Phát sinh
           </h1>
           <p className="text-sm text-warm-gray-700 mt-1">
-            Ghi nhận và đối soát các khoản chi phí phát sinh hàng tháng.
+            Ghi nhận và đối soát các khoản phát sinh (thu/chi) hàng tháng.
           </p>
         </div>
         <button
@@ -172,13 +176,14 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
               description: '',
               amount: 0,
               paidBy: 'Doanh nghiệp',
-              notes: ''
+              notes: '',
+              transactionType: 'CHI'
             });
             setIsModalOpen(true);
           }}
           className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-vintage-sepia-900 hover:bg-vintage-gold text-vintage-sepia-50 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
         >
-          <Plus size={16} /> Thêm dòng chi phí
+          <Plus size={16} /> Thêm phát sinh
         </button>
       </div>
 
@@ -207,21 +212,21 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
         </div>
       </div>
 
-      {/* Main Expense Table */}
       {loading ? (
         <div className="text-center py-12"><Loader2 className="animate-spin h-8 w-8 text-vintage-gold mx-auto" /></div>
       ) : expenses.length === 0 ? (
-        <p className="text-center py-8 text-xs text-warm-gray-700 italic">Không có chi phí nào phát sinh trong tháng {selectedMonth}/{selectedYear}.</p>
+        <p className="text-center py-8 text-xs text-warm-gray-700 italic">Không có khoản phát sinh nào trong tháng {selectedMonth}/{selectedYear}.</p>
       ) : (
         <div className="space-y-6">
-          <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl overflow-hidden shadow-sm text-xs">
-            <table className="w-full text-left text-xs border-collapse">
+          <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl shadow-sm text-[13px] overflow-x-auto w-full">
+            <table className="w-full min-w-[800px] text-left text-[13px] border-collapse">
               <thead>
-                <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider">
-                  <th className="p-4 w-32">Ngày chi</th>
-                  <th className="p-4">Nội dung chi phí</th>
-                  <th className="p-4 w-36 text-right">Chi bao nhiêu</th>
-                  <th className="p-4 w-44">Người chi</th>
+                <tr className="bg-vintage-sepia-900/10 border-b border-vintage-sepia-200 text-vintage-sepia-900 font-bold uppercase tracking-wider whitespace-nowrap">
+                  <th className="p-4 w-32">Ngày phát sinh</th>
+                  <th className="p-4 w-20">Loại</th>
+                  <th className="p-4">Nội dung</th>
+                  <th className="p-4 w-36 text-right">Số tiền</th>
+                  <th className="p-4 w-44">Người thu/chi</th>
                   <th className="p-4">Ghi chú</th>
                   <th className="p-4 text-center w-28">Hành động</th>
                 </tr>
@@ -229,10 +234,21 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
               <tbody className="divide-y divide-vintage-sepia-200 font-medium">
                 {expenses.map((e) => (
                   <tr key={e.id} className="hover:bg-vintage-sepia-50/50">
-                    <td className="p-4 font-mono">{e.expense_date.substring(0, 10)}</td>
+                    <td className="p-4 font-mono whitespace-nowrap">{e.expense_date.substring(0, 10)}</td>
+                    <td className="p-4">
+                      <span className={`inline-flex px-2 py-0.5 rounded font-bold uppercase text-[10px] ${
+                        e.transaction_type === 'THU' ? 'bg-muted-green-150 text-muted-green-800' : 'bg-film-red/10 text-film-red'
+                      }`}>
+                        {e.transaction_type || 'CHI'}
+                      </span>
+                    </td>
                     <td className="p-4 text-vintage-sepia-900 font-semibold">{e.description}</td>
-                    <td className="p-4 text-right font-mono font-bold text-film-red">{formatVND(e.amount)}</td>
-                    <td className="p-4 text-warm-gray-800">
+                    <td className={`p-4 text-right font-mono font-bold whitespace-nowrap ${
+                      e.transaction_type === 'THU' ? 'text-muted-green-600' : 'text-film-red'
+                    }`}>
+                      {e.transaction_type === 'THU' ? '+' : '-'}{formatVND(e.amount)}
+                    </td>
+                    <td className="p-4 text-warm-gray-800 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-0.5 rounded font-bold uppercase text-[9px] ${
                         e.paid_by === 'Doanh nghiệp' ? 'bg-vintage-gold/15 text-vintage-gold' : 'bg-warm-gray-200 text-warm-gray-800'
                       }`}>
@@ -260,8 +276,10 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
                 ))}
                 {/* Total row */}
                 <tr className="bg-vintage-sepia-900/5 font-extrabold border-t border-vintage-sepia-200">
-                  <td className="p-4" colSpan={2}>TỔNG CHI PHÍ THÁNG {selectedMonth}/{selectedYear}</td>
-                  <td className="p-4 text-right font-mono text-film-red text-sm">{formatVND(totalSum)}</td>
+                  <td className="p-4" colSpan={3}>TỔNG PHÁT SINH THÁNG {selectedMonth}/{selectedYear}</td>
+                  <td className={`p-4 text-right font-mono text-[14px] whitespace-nowrap ${totalSum >= 0 ? 'text-film-red' : 'text-muted-green-600'}`}>
+                    {totalSum < 0 ? `+${formatVND(Math.abs(totalSum))}` : `-${formatVND(totalSum)}`}
+                  </td>
                   <td className="p-4" colSpan={3}></td>
                 </tr>
               </tbody>
@@ -272,23 +290,27 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="bg-white border border-vintage-sepia-200 rounded-xl p-5 shadow-sm space-y-3">
               <h3 className="font-serif font-bold text-sm text-vintage-sepia-900 border-b border-vintage-sepia-150 pb-2">
-                Tổng chi phí theo từng người chi
+                Tổng phát sinh theo từng người
               </h3>
               {summary.length === 0 ? (
-                <p className="text-xs text-warm-gray-500 italic py-2">Không ghi nhận chi phí nào trong tháng.</p>
+                <p className="text-xs text-warm-gray-500 italic py-2">Không ghi nhận phát sinh nào trong tháng.</p>
               ) : (
-                <table className="w-full text-left text-xs border-collapse">
+                <table className="w-full text-left text-[13px] border-collapse">
                   <thead>
-                    <tr className="border-b border-vintage-sepia-200 text-warm-gray-600 font-bold uppercase text-[9px] tracking-wider">
-                      <th className="py-2">Người chi</th>
-                      <th className="py-2 text-right">Tổng chi</th>
+                    <tr className="border-b border-vintage-sepia-200 text-warm-gray-600 font-bold uppercase text-[10px] tracking-wider">
+                      <th className="py-2">Người thu/chi</th>
+                      <th className="py-2 text-right">Tổng phát sinh</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-vintage-sepia-100">
                     {summary.map((item, idx) => (
                       <tr key={idx} className="hover:bg-vintage-sepia-50/50">
                         <td className="py-2 font-bold text-vintage-sepia-950">{item.paidBy}</td>
-                        <td className="py-2 text-right font-mono font-bold text-film-red">{formatVND(item.totalAmount)}</td>
+                        <td className={`py-2 text-right font-mono font-bold ${
+                          item.totalAmount < 0 ? 'text-muted-green-600' : 'text-film-red'
+                        }`}>
+                          {item.totalAmount < 0 ? `+${formatVND(Math.abs(item.totalAmount))}` : `-${formatVND(item.totalAmount)}`}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -305,14 +327,52 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
           <div className="bg-vintage-sepia-100 border border-vintage-sepia-200 rounded-xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
             <div className="p-5 border-b border-vintage-sepia-200 flex items-center justify-between">
               <h3 className="font-serif font-bold text-lg text-vintage-sepia-900">
-                {editingExpense ? 'Chỉnh sửa dòng chi phí' : 'Ghi nhận chi phí mới'}
+                {editingExpense ? 'Chỉnh sửa phát sinh' : 'Ghi nhận phát sinh'}
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="p-1 rounded-lg hover:bg-vintage-sepia-200"><X size={18} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+              
+              {/* Loại giao dịch */}
+              <div className="mb-4">
+                <label className="block font-bold text-warm-gray-700 mb-2">Loại phát sinh *</label>
+                <div className="flex gap-4">
+                  <label className={`flex items-center gap-2 p-2.5 rounded-lg border flex-1 cursor-pointer transition-colors ${
+                    formData.transactionType === 'CHI' 
+                      ? 'border-film-red bg-film-red/5' 
+                      : 'border-vintage-sepia-200 hover:bg-vintage-sepia-50'
+                  }`}>
+                    <input 
+                      type="radio" 
+                      name="transactionType" 
+                      value="CHI"
+                      checked={formData.transactionType === 'CHI'}
+                      onChange={() => setFormData({ ...formData, transactionType: 'CHI' })}
+                      className="accent-film-red"
+                    />
+                    <span className="font-bold text-film-red">Chi tiền</span>
+                  </label>
+                  <label className={`flex items-center gap-2 p-2.5 rounded-lg border flex-1 cursor-pointer transition-colors ${
+                    formData.transactionType === 'THU' 
+                      ? 'border-muted-green-600 bg-muted-green-150/30' 
+                      : 'border-vintage-sepia-200 hover:bg-vintage-sepia-50'
+                  }`}>
+                    <input 
+                      type="radio" 
+                      name="transactionType" 
+                      value="THU"
+                      checked={formData.transactionType === 'THU'}
+                      onChange={() => setFormData({ ...formData, transactionType: 'THU' })}
+                      className="accent-muted-green-600"
+                    />
+                    <span className="font-bold text-muted-green-600">Thu tiền</span>
+                  </label>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-warm-gray-700 mb-1">Ngày chi *</label>
+                  <label className="block font-bold text-warm-gray-700 mb-1">Ngày phát sinh *</label>
                   <input
                     type="date"
                     required
@@ -322,7 +382,7 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-warm-gray-700 mb-1">Số tiền chi (₫) *</label>
+                  <label className="block font-bold text-warm-gray-700 mb-1">Số tiền (₫) *</label>
                   <div className="relative">
                     <input
                       type="number"
@@ -338,11 +398,11 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
               </div>
 
               <div>
-                <label className="block font-bold text-warm-gray-700 mb-1">Nội dung chi phí *</label>
+                <label className="block font-bold text-warm-gray-700 mb-1">Nội dung *</label>
                 <input
                   type="text"
                   required
-                  placeholder="Ví dụ: Nhập cuộn film Kodak, Trả tiền điện nước..."
+                  placeholder={formData.transactionType === 'CHI' ? "Ví dụ: Nhập cuộn film Kodak, Trả tiền điện nước..." : "Ví dụ: Tiền bồi thường, Thu nhập khác..."}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-3 py-2 border border-vintage-sepia-200 bg-white rounded-lg text-warm-gray-900"
@@ -350,7 +410,7 @@ export const Expenses: React.FC<ExpensesProps> = ({ businessType }) => {
               </div>
 
               <div>
-                <label className="block font-bold text-warm-gray-700 mb-1">Người chi trả *</label>
+                <label className="block font-bold text-warm-gray-700 mb-1">Người thu/chi *</label>
                 <select
                   value={formData.paidBy}
                   onChange={(e) => setFormData({ ...formData, paidBy: e.target.value })}
